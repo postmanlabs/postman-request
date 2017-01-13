@@ -258,6 +258,15 @@ tape('stringify - "email=foo%20bar-xyz@gmail.com"', function (t) {
   t.end()
 })
 
+tape('stringify - "a[0]=foo&a[1]=bar"', function (t) {
+  var parsed = [
+        { key: 'a[0]', value: 'foo' },
+        { key: 'a[1]', value: 'bar' }
+  ]
+  t.equal(url.stringify(parsed), 'a[0]=foo&a[1]=bar')
+  t.end()
+})
+
 tape('url parse - "http://httpbin.org/get?z=b,c"', function (t) {
   var parsed = url('http://httpbin.org/get?z=b,c')
 
