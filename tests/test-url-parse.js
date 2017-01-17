@@ -150,6 +150,14 @@ tape('stringify Japanese- "a=ハローポストマン"', function (t) {
   t.end()
 })
 
+tape('stringify Partial Russian - "a=Hello Почтальон"', function (t) {
+  var parsed = [
+        { key: 'a', value: 'Hello Почтальон' },
+  ]
+  t.equal(url.stringify(parsed), 'a=Hello%20%D0%9F%D0%BE%D1%87%D1%82%D0%B0%D0%BB%D1%8C%D0%BE%D0%BD')
+  t.end()
+})
+
 tape('stringify - "a=b&c"', function (t) {
   var parsed = [
         { key: 'a', value: 'b' },
