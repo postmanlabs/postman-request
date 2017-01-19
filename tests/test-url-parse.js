@@ -235,6 +235,23 @@ tape('stringify - "a=b&&c=d"', function (t) {
   t.end()
 })
 
+tape('stringify - "a=foo+bar"', function (t) {
+  var parsed = [
+        { key: 'a', value: 'foo+bar' }
+  ]
+  t.equal(url.stringify(parsed), 'a=foo%2Bbar')
+  t.end()
+})
+
+tape('stringify - "a=foo%2Bbar"', function (t) {
+  var parsed = [
+        { key: 'a', value: 'foo%2Bbar' }
+  ]
+  t.equal(url.stringify(parsed), 'a=foo%2Bbar')
+  t.end()
+})
+
+
 tape('url parse - "http://httpbin.org/get?z=b,c"', function (t) {
   var parsed = url('http://httpbin.org/get?z=b,c')
 
