@@ -3,6 +3,11 @@
 var url = require('../lib/url-parse')
 var tape = require('tape')
 
+function esc (str) {
+  return str
+    .replace(/#/g, '%23')
+}
+
 tape('parse - "a=b&c=d"', function (t) {
   var str = 'a=b&c=d'
   t.deepEqual(url.parse(str), [
@@ -347,4 +352,26 @@ tape('url parse with invalid encoded parameters - ""', function (t) {
     url('http://httpbin.org/get?&c=%d')
     t.end()
   })
+})
+
+tape('url parse with # in query parameters - ""', function (t) {
+  var parsed = url('http://httpbin.org/get?user#1=someUser')
+
+  t.equal(parsed.search, esc('?user#1=someUser'))
+  t.equal(parsed.query, esc('user#1=someUser'))
+  t.equal(parsed.path, esc('/get?user#1=someUser'))
+  t.equal(parsed.href, esc('http://httpbin.org/get?user#1=someUser'))
+
+  t.end()
+})
+
+tape('url parse with multiple # in query parameters - ""', function (t) {
+  var parsed = url('http://httpbin.org/get?user#1=someUser&user#2=someUser#2')
+
+  t.equal(parsed.search, esc('?user#1=someUser&user#2=someUser#2'))
+  t.equal(parsed.query, esc('user#1=someUser&user#2=someUser#2'))
+  t.equal(parsed.path, esc('/get?user#1=someUser&user#2=someUser#2'))
+  t.equal(parsed.href, esc('http://httpbin.org/get?user#1=someUser&user#2=someUser#2'))
+
+  t.end()
 })

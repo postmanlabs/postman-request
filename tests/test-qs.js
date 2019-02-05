@@ -53,6 +53,7 @@ function esc (str) {
   return str
     .replace(/\[/g, '%5B')
     .replace(/\]/g, '%5D')
+    .replace(/#/g, '%23')
 }
 
 runTest('adding a querystring', {
@@ -100,6 +101,21 @@ runTest('a query with an array for a value', {
   qs: { order: ['bar', 'desc'] },
   expected: esc('/?order[0]=bar&order[1]=desc'),
   expectedQuerystring: '/?order=bar&order=desc'
+})
+
+runTest('a query with # in key', {
+  qs: { 'user#1': 'someUser' },
+  expected: esc('/?user#1=someUser')
+})
+
+runTest('a query with # in value', {
+  qs: { 'user1': 'someUser#1' },
+  expected: esc('/?user1=someUser#1')
+})
+
+runTest('a query with # in key and value', {
+  qs: { 'user#1': 'someUser#1' },
+  expected: esc('/?user#1=someUser#1')
 })
 
 runTest('pass options to the qs module via the qsParseOptions key', {
