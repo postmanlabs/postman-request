@@ -44,14 +44,17 @@
     "stream-length": "^1.0.2",
     "tough-cookie": "~2.5.0",
     "@postman/tunnel-agent": "^0.6.2",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.2",
+    "snyk": "^1.192.0"
   },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
     "test-ci": "taper tests/test-*.js",
     "test-cov": "istanbul cover tape tests/test-*.js",
     "test-browser": "node tests/browser/start.js",
-    "lint": "standard"
+    "lint": "standard",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "devDependencies": {
     "bluebird": "^3.2.1",
@@ -79,5 +82,6 @@
     "ignore": [
       "har-validator"
     ]
-  }
+  },
+  "snyk": true
 }
