@@ -1,0 +1,24 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.14.1
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  SNYK-JS-LODASH-567746:
+    - karma > lodash:
+        patched: '2020-05-01T01:40:50.306Z'
+    - karma-browserify > lodash:
+        patched: '2020-05-01T01:40:50.306Z'
+    - karma-coverage > lodash:
+        patched: '2020-05-01T01:40:50.306Z'
+    - karma > combine-lists > lodash:
+        patched: '2020-05-01T01:40:50.306Z'
+    - postman-url-encoder > postman-collection > lodash:
+        patched: '2020-05-01T01:40:50.306Z'
+    - standard > eslint > lodash:
+        patched: '2020-05-01T01:40:50.306Z'
+    - standard > eslint > inquirer > lodash:
+        patched: '2020-05-01T01:40:50.306Z'
+    - standard > eslint > table > lodash:
+        patched: '2020-05-01T01:40:50.306Z'
+    - postman-url-encoder > postman-collection > postman-url-encoder > postman-collection > lodash:
+        patched: '2020-05-01T01:40:50.306Z'
