@@ -2,29 +2,41 @@ import {URL} from "node:url";
 import {RequestOptions} from "https";
 import * as http from "http";
 import * as http2 from 'http2';
+import {EventEmitter} from "node:events";
 export function request(options: RequestOptions, callback?: (res: http.IncomingMessage) => void ): http.ClientRequest{
-    const ca = options.ca;
-    const key = options.key;
-    const rejectUnauthorized = options.rejectUnauthorized;
     const headers = options.headers;
-    const cert = options.cert;
 
     // @ts-ignore
     const uri:URL = options.uri;
+    const newoptions: http2.ClientSessionOptions | http2.SecureClientSessionOptions = {}
+
+    if(options.createConnection){
+        // @ts-ignore
+        newoptions.createConnection = options.createConnection;
+    }
+    else{
+        // @ts-ignore
+        newoptions.ca = options.ca;
+        // @ts-ignore
+        newoptions.key = options.key;
+        // @ts-ignore
+        newoptions.cert = options.cert;
+        // @ts-ignore
+        newoptions.rejectUnauthorized = options.rejectUnauthorized;
+    }
 
 
-    const client = http2.connect(uri, {
-        ca,
-        key,
-        cert,
-        rejectUnauthorized,
-    });
+        // @ts-ignore
+    const client = http2.connect(uri, newoptions);
 
     const path = options.path
     const method = options.method;
     const req = client.request({[http2.constants.HTTP2_HEADER_PATH]: path, [http2.constants.HTTP2_HEADER_METHOD]: method, ...headers })
     req.on('end', () => {
         client.close();
+    })
+    req.on('error',()=>{
+        console.log(req.rstCode)
     })
 
     //@ts-ignore
@@ -33,15 +45,17 @@ export function request(options: RequestOptions, callback?: (res: http.IncomingM
 }
 
 
-// @ts-ignore
-class DummyClientRequest implements http.ClientRequest {
+class DummyClientRequest extends EventEmitter implements http.ClientRequest  {
     private _req: http2.ClientHttp2Stream;
     private _client: http2.ClientHttp2Session
+    private response: http2.IncomingHttpHeaders;
     constructor(req: http2.ClientHttp2Stream, client: http2.ClientHttp2Session){
+        super();
         this._req = req;
         this._client = client;
         this.on = this.on.bind(this);
         this.once = this.once.bind(this)
+        this.registerListeners();
     }
 
     get _header(){
@@ -52,73 +66,44 @@ class DummyClientRequest implements http.ClientRequest {
         return '2.0'
     }
 
+    get rawHeaders(){
+        return Object.entries(this.response).map(([key, value])=>`${key}: ${value}`).join('/r/n')
+    }
+
+    get statusCode(){
+        return this.response[http2.constants.HTTP2_HEADER_STATUS];
+    }
+
     setDefaultEncoding(encoding: BufferEncoding): this {
         this._req.setDefaultEncoding(encoding)
         return this;
     }
+    // on(event:string, cb){
+    //     console.log('event registered', event);
+    //     return super.on(event, cb)
+    // }
+    private registerListeners(
 
-
-    on(eventName:string, cb: (arg1: any, arg2?: any, arg3?: any)=>void){
-        if(eventName === 'drain'){
-            this._req.on('drain', cb)
-        }
-        else if(eventName === 'error'){
-            this._req.on('error', cb);
-        }
-        else if(eventName === 'response'){
-            this._req.on('response', (response)=>{
-                cb({
-                    statusCode: response[http2.constants.HTTP2_HEADER_STATUS],
-                    rawHeaders: Object.entries(response).map(([key, value])=>`${key}: ${value}`).join('/r/n'),
-                    on: this.on,
-                    once: this.once,
-                    httpVersion: this.httpVersion
-                })
-
-            })
-        }
-        else if(eventName === 'data'){
-            this._req.on('data', cb)
-        }
-        else if(eventName === 'end'){
-            this._req.on('end', cb);
-        }
-
-        else if(eventName === 'close'){
-            this._req.on('close', cb);
-        }
-        else if(eventName === 'socket'){
-            cb(this._client.socket)
-        }
-        else if(eventName === 'error'){
-            this._req.on('error', cb);
-            this._client.on('error', cb);
-        }
-
-
-        else {
-            console.log('unknown eventName', eventName, 'received')
-        }
-
-        return this;
+    ){
+        this._req.on('drain', (...args)=>this.emit('drain', ...args))
+        this._req.on('error', (...args)=>this.emit('error', ...args))
+        this._req.on('data', (...args)=>this.emit('data', ...args))
+        this._req.on('end', (...args)=>this.emit('end', ...args))
+        this._req.on('close', (...args)=>this.emit('close', ...args))
+        this._req.on('socket', (...args)=>this.emit('socket', this._client.socket))
+        this._client.on('error', (...args)=>this.emit('error', ...args))
+        this._req.on('response', (response)=>{
+            console.log(response)
+            this.response = response;
+            this.emit('response',this);
+        } )
+        //
+        this._req.once('end', () => this.emit('end'))
+        this._req.once('close', () => this.emit('close'))
+        // this._req.once('error', (...args) => this.emit('error', ...args))
+        // this._client.once('error', (...args) => this.emit('error', ...args))
     }
-    once(eventName, cb){
-        if(eventName === 'end'){
-            this._req.on('end', cb);
-        }
 
-        else if(eventName === 'close'){
-            this._req.on('close', cb);
-        }
-        else if(eventName === 'error'){
-            this._req.once('error', cb);
-            this._client.once('error', cb);
-        }
-        else {
-            console.log('unknown once eventName', eventName, 'received')
-        }
-        return this;
-    }
 
     // @ts-ignore
     end(){

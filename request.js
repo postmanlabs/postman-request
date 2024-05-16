@@ -4,6 +4,7 @@ var tls = require('tls')
 var http = require('http')
 var https = require('https')
 var http2 = require('./lib/http2').default;
+var autohttp2 = require('./lib/autohttp').default;
 var url = require('url')
 var util = require('util')
 var stream = require('stream')
@@ -589,7 +590,7 @@ Request.prototype.init = function (options) {
   }
 
   var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
-  var defaultModules = {'http:': { h2: http, http1: http, auto: http }, 'https:': { http1: https, h2: http2, auto: https }}
+  var defaultModules = {'http:': { h2: http, http1: http, auto: http }, 'https:': { http1: https, h2: http2, auto: autohttp2 }}
   var httpModules = self.httpModules || {}
 
   self.httpModule = httpModules[protocol]?.[options.protocol] || defaultModules[protocol][options.protocol]
