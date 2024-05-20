@@ -3,6 +3,7 @@ import {RequestOptions} from "https";
 import * as http from "http";
 import * as http2 from 'http2';
 import {EventEmitter} from "node:events";
+
 export function request(options: RequestOptions, callback?: (res: http.IncomingMessage) => void ): http.ClientRequest{
     const headers = options.headers;
 
@@ -104,6 +105,10 @@ class DummyClientRequest extends EventEmitter implements http.ClientRequest  {
         // this._client.once('error', (...args) => this.emit('error', ...args))
     }
 
+
+    write (data: any) {
+        return this._req.write(data);
+    }
 
     // @ts-ignore
     end(){

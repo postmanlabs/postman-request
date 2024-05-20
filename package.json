@@ -48,6 +48,7 @@
   },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
+    "http2": "tsc lib/autohttp/index.ts lib/http2/index.ts && node test",
     "test-ci": "taper tests/test-*.js",
     "test-cov": "istanbul cover tape tests/test-*.js",
     "test-browser": "node tests/browser/start.js",

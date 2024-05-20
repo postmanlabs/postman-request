@@ -16,7 +16,7 @@ function parseSession(buf) {
 // @ts-ignore
 class MultiProtocolRequest extends EventEmitter implements http.ClientRequest {
     private socket: tls.TLSSocket;
-    private queuedOps: string[] = [];
+    private queuedOps: any[] = [];
 
     constructor(socket: tls.TLSSocket, options: RequestOptions) {
         super();
@@ -31,7 +31,6 @@ class MultiProtocolRequest extends EventEmitter implements http.ClientRequest {
                 this.socket.end();
                 return;
             }
-
 
             options.createConnection = () => {
                 return this.socket
@@ -66,15 +65,24 @@ class MultiProtocolRequest extends EventEmitter implements http.ClientRequest {
     }
 
     private processQueuedOpens(ob: any) {
-        this.queuedOps.forEach((op) => {
+        this.queuedOps.forEach(([op, ...args]) => {
             if (op === 'end') {
                 ob.end()
+            }
+
+            if (op === 'write') {
+                ob.write(...args)
             }
         })
     }
 
+    write (data: any) {
+        this.queuedOps.push(['write', data]);
+        return true;
+    }
+
     end() {
-        this.queuedOps.push('end');
+        this.queuedOps.push(['end']);
         return this;
     }
 }
@@ -86,7 +94,7 @@ export function request(options: RequestOptions): http.ClientRequest {
 
     const newOptions: tls.ConnectionOptions = {
         port: options.port ? Number(options.port) : 443,
-        ALPNProtocols: ['h2'],
+        ALPNProtocols: ['h2', 'http/1.1'],
         ca: options.ca,
         key: options.key,
         cert: options.cert,
