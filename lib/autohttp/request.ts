@@ -1,55 +1,61 @@
 import {URL} from "node:url";
-import {RequestOptions} from "https";
 import * as http from "http";
-import * as https from "https";
-import * as tls from 'tls';
+import * as http2 from "http2";
 import {EventEmitter} from "node:events";
-import {request as http2Request} from '../../lib/http2/request'
+import { RequestOptions, Request as HTTP2Request} from '../../lib/http2/request'
+import {AutoHttp2Agent} from "./agent";
+import {ClientRequest} from "node:http";
 
-function parseSession(buf) {
-    return {
-        sessionId: buf.slice(17, 17 + 32).toString('hex'),
-        masterKey: buf.slice(51, 51 + 48).toString('hex')
-    };
+
+
+interface AutoRequestOptions extends Omit<RequestOptions, 'agent'>{
+    agent: AutoHttp2Agent;
 }
 
+
 // @ts-ignore
-class MultiProtocolRequest extends EventEmitter implements http.ClientRequest {
-    private socket: tls.TLSSocket;
+export class MultiProtocolRequest extends EventEmitter implements http.ClientRequest {
     private queuedOps: any[] = [];
+    private options: AutoRequestOptions;
 
-    constructor(socket: tls.TLSSocket, options: RequestOptions) {
+    constructor(options: AutoRequestOptions) {
         super();
-        this.socket = socket;
-        this.emit('socket', socket);
-        this.socket.on('error', (e) => this.emit('error', e))
-        this.socket.on('tlsClientError', (e) => this.emit('error', e))
-        this.socket.once('secureConnect', () => {
-            const protocol = this.socket.alpnProtocol;
-            if (!protocol) {
-                this.emit('error', this.socket.authorizationError)
-                this.socket.end();
-                return;
-            }
+        this.onHttp2 = this.onHttp2.bind(this);
+        this.onHttp = this.onHttp.bind(this);
+        this.options = options;
 
-            options.createConnection = () => {
-                return this.socket
-            };
-            let req;
-            if (protocol === 'h2') {
-                // @ts-ignore
-                req = http2Request({...options});
-            } else if (protocol === 'http/1.1') {
-                req = https.request(options);
-            } else {
-                this.emit('error', 'Unknown protocol' + protocol)
-                return;
+        // Request agent to perform alpn and return either an http agent or https agent
+        // Pass the request to the agent, the agent then emits http or h2 event based on the result of alpn negotiation
 
-            }
-            this.registerCallbacks(req);
-            this.processQueuedOpens(req);
 
-        })
+        const agent = options.agent;
+        agent.createConnection(this, options);
+        this.registerAgentCallback(agent);
+
+
+    }
+
+    registerAgentCallback(agent: AutoHttp2Agent){
+        agent.once('h2', this.onHttp2);
+        agent.once('socket', (socket) => this.emit('socket', socket));
+        agent.once('http1', this.onHttp);
+    }
+
+    onHttp2(connection: http2.ClientHttp2Session){
+        // @ts-ignore
+        const options: RequestOptions = this.options;
+        // @ts-ignore
+        options.agent = {
+            createConnection: () => connection
+        }
+        const req = new HTTP2Request(options)
+        this.registerCallbacks(req);
+        this.processQueuedOpens(req);
+    }
+
+    onHttp(req: ClientRequest){
+        this.registerCallbacks(req);
+        this.processQueuedOpens(req);
     }
 
     registerCallbacks(ob: any) {
@@ -65,6 +71,7 @@ class MultiProtocolRequest extends EventEmitter implements http.ClientRequest {
     }
 
     private processQueuedOpens(ob: any) {
+
         this.queuedOps.forEach(([op, ...args]) => {
             if (op === 'end') {
                 ob.end()
@@ -88,26 +95,16 @@ class MultiProtocolRequest extends EventEmitter implements http.ClientRequest {
 }
 
 export function request(options: RequestOptions): http.ClientRequest {
-    options.port = Number(options.port)
-    // @ts-ignore
-    const uri: URL = options.uri;
+    // request was received here, that means protocol is auto, that means priority order is http2, http
+    // There can be 2 cases
 
-    const newOptions: tls.ConnectionOptions = {
-        port: options.port ? Number(options.port) : 443,
-        ALPNProtocols: ['h2', 'http/1.1'],
-        ca: options.ca,
-        key: options.key,
-        cert: options.cert,
-        host: uri.hostname,
-        servername: uri.hostname,
-        rejectUnauthorized: options.rejectUnauthorized
-        // minVersion: "TLSv1.3",
-        // maxVersion: "TLSv1.3"
-    }
+    // 2. We have performed ALPN negotiation before for this host/port with the same agent options
+    // 3. We need to perform ALPN negotiation, add the socket used to perform negotiation to the appropriate agent
+    // 3.1 Add the agent to the pool if it didn't already exist
 
-    const socket = tls.connect(newOptions);
+
     // socket.enableTrace()
     //@ts-ignore
-    return new MultiProtocolRequest(socket, options);
+    return new MultiProtocolRequest( options);
 }
 
