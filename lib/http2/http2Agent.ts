@@ -10,7 +10,7 @@ interface Options {
 
 }
 
-interface AgentOptions{
+export interface AgentOptions{
     ca?: Buffer;
     extraCa?:string;
     ciphers?: string;

@@ -9,7 +9,7 @@ const http2url = 'https://localhost:3000/h2'
 const pool = {};
 const proto = 'auto';
 const r = request(TEST_URL,{
-  protocol: proto,
+  httpVersion: proto,
   timing:true,
   strictSSL:true,
   gzip:true,
@@ -24,7 +24,7 @@ const r = request(TEST_URL,{
 }, (err, resp, body)=> {
   console.log(resp?.timings, err, body);
   request(TEST_URL,{
-    protocol: proto,
+    httpVersion: proto,
     timing:true,
     strictSSL:true,
     gzip:true,

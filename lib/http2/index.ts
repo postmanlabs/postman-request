@@ -3,5 +3,7 @@ import {request} from "./request";
 
 export default  {
     Agent: Http2Agent,
-    request: request
+    request: request,
+    globalAgent: new Http2Agent({})
+
 }

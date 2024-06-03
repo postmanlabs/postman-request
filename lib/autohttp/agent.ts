@@ -1,5 +1,5 @@
 import {Agent} from 'https';
-import {Http2Agent} from "../http2/http2Agent";
+import {Http2Agent, type AgentOptions as Http2AgentOptions} from "../http2/http2Agent";
 import * as https from "https";
 import {RequestOptions} from "../http2/request";
 import {MultiProtocolRequest} from "./request";
@@ -7,7 +7,7 @@ import * as tls from "tls";
 import {EventEmitter} from "node:events";
 
 
-interface AgentOptions extends Omit<RequestOptions, 'agent'> {
+interface AgentOptions extends Http2AgentOptions {
 }
 
 // @ts-ignore
@@ -23,7 +23,7 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
         this.ALPNCache = new Map();
     }
 
-    createConnection(req: MultiProtocolRequest, options: AgentOptions) {
+    createConnection(req: MultiProtocolRequest, options: RequestOptions) {
         const uri = options.uri;
         const port = options.port ?? 443;
 

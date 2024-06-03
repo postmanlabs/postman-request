@@ -593,7 +593,9 @@ Request.prototype.init = function (options) {
   var defaultModules = {'http:': { h2: http, http1: http, auto: http }, 'https:': { http1: https, h2: http2, auto: autohttp2 }}
   var httpModules = self.httpModules || {}
 
-  self.httpModule = httpModules[protocol]?.[options.protocol] || defaultModules[protocol][options.protocol]
+  // If user defines httpModules, respect if they have different httpModules for different http versions, else use the tls specific http module
+  // If the user defines nothing, revert to default modules
+  self.httpModule = httpModules[protocol]?.[options.httpVersion] || httpModules[protocol] || defaultModules[protocol][options.httpVersion]
 
   if (!self.httpModule) {
     return self.emit('error', new Error('Invalid protocol: ' + protocol))
@@ -810,8 +812,6 @@ Request.prototype.getNewAgent = function () {
     poolKey += Agent.name
   }
 
-  poolKey += self.protocol;
-
   // ca option is only relevant if proxy or destination are https
   var proxy = self.proxy
   if (typeof proxy === 'string') {
@@ -891,7 +891,7 @@ Request.prototype.getNewAgent = function () {
   }
 
   // we're using a stored agent.  Make sure it's protocol-specific
-  poolKey = self.uri.protocol + poolKey
+  poolKey = self.httpVersion + ':' + self.uri.protocol + poolKey
 
   // generate a new agent for this setting if none yet exists
   if (!self.pool[poolKey]) {

@@ -3,5 +3,6 @@ import {request} from "./request";
 
 export default  {
     Agent: AutoHttp2Agent,
-    request: request
+    request: request,
+    globalAgent: new AutoHttp2Agent({})
 }
