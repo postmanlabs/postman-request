@@ -810,6 +810,8 @@ Request.prototype.getNewAgent = function () {
     poolKey += Agent.name
   }
 
+  poolKey += self.protocol;
+
   // ca option is only relevant if proxy or destination are https
   var proxy = self.proxy
   if (typeof proxy === 'string') {
