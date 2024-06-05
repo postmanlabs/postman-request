@@ -24,7 +24,8 @@ function initParams (uri, options, callback) {
     callback = options
   }
 
-  var params = {protocolVersion: 'http1'}
+  var params = {protocolVersion: 'auto'}
+  console.log('params', params)
   if (options !== null && typeof options === 'object') {
     extend(params, options, {uri: uri})
   } else if (typeof uri === 'string') {

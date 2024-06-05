@@ -167,6 +167,11 @@ export class Request extends EventEmitter {
     this._req.setTimeout(timeout, cb);
   
   }
+
+  abort(){
+    this._req.destroy();
+  }
+
 }
 export function request(options): http.ClientRequest {
   // @ts-ignore

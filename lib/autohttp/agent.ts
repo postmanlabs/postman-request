@@ -19,7 +19,8 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
     constructor(options: AgentOptions) {
         super();
         this.http2Agent = new Http2Agent(options);
-        this.httpsAgent = new https.Agent({...options, keepAlive: true, timeout: 3000});
+        // @ts-ignore
+        this.httpsAgent = new https.Agent({...options, ...options.agentOptions});
         this.ALPNCache = new Map();
     }
 
@@ -38,7 +39,7 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
             process.nextTick(()=>this.emit('h2', connection));
             return;
         }
-        if(protocol === 'http/1.1'){
+        if(protocol === 'http/1.1' || protocol === 'http/1.0'){
             // console.log('using cached alpn');
             const requestOptions: https.RequestOptions = {
                 port: options.port ?? 443,
