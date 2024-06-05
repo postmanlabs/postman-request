@@ -55,11 +55,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [6, 8, 16]
+        node-version: [6, 8]
         include:
           - node-version: 10
             # todo: enable coverage after figuring out why test-cov step is failing
             coverage: false
+          - node-version: 16
+            legacy-peer-deps: true
 
     steps:
       - name: Checkout repository
@@ -70,7 +72,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Install
+      - if: ${{ matrix.legacy-peer-deps }}
+        name: Install with legacy peer deps
+        run: npm install --legacy-peer-deps
+      - else:
+        name: Install
         run: npm install
       
       - name: Compile TS
