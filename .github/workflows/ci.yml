@@ -75,7 +75,8 @@ jobs:
       - if: ${{ matrix.legacy-peer-deps }}
         name: Install with legacy peer deps
         run: npm install --legacy-peer-deps
-      - else:
+        
+      - if: ${{ !matrix.legacy-peer-deps }}
         name: Install
         run: npm install
       
