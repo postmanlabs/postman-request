@@ -73,4 +73,4 @@ jobs:
         run: tsc lib/**/*.ts
 
       - name: Run tests and upload coverage
-        run: npm run test-cov && npx codecov && cat ./coverage/lcov.info | npx coveralls
+        run: npm run test-ci
