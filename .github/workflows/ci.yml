@@ -72,6 +72,5 @@ jobs:
       - name: Compile TS
         run: tsc lib/**/*.ts
 
-      - if: ${{ matrix.coverage }}
-        name: Run tests and upload coverage
+      - name: Run tests and upload coverage
         run: npm run test-cov && npx codecov && cat ./coverage/lcov.info | npx coveralls
