@@ -23,14 +23,6 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
         this.ALPNCache = new Map();
     }
 
-    on<K>(eventName: string | symbol, listener: (...args: any[]) => void): this;
-    on<K>(eventName: string | symbol, listener: (...args: any[]) => void): this;
-    on(eventName: string, listener: unknown): this {
-        console.log('on', eventName);
-        // @ts-ignore
-        return super.on(eventName, listener);
-    }
-
     createConnection(req: MultiProtocolRequest, options: RequestOptions) {
         const uri = options.uri;
         const port = options.port ?? 443;

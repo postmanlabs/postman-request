@@ -88,6 +88,10 @@ export class MultiProtocolRequest extends EventEmitter implements http.ClientReq
             if (op === 'pipe'){
                 ob.pipe(...args);
             }
+
+            if(op === 'setTimeout'){
+                ob.setTimeout(...args);
+            }
         })
     }
 
@@ -109,6 +113,12 @@ export class MultiProtocolRequest extends EventEmitter implements http.ClientReq
     pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean | undefined; } | undefined): T {
         this.queuedOps.push(['pipe', destination, options]);
         return destination;
+    }
+
+    setTimeout(timeout: number, callback?: (() => void) | undefined): this {
+        this.queuedOps.push(['setTimeout', timeout, callback]);
+        return this;
+    
     }
 }
 

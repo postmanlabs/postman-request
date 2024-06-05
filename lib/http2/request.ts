@@ -4,6 +4,7 @@ import * as http2 from "http2";
 import { EventEmitter } from "events";
 import { Http2Agent } from "./http2Agent";
 
+
 export interface RequestOptions {
   path: string;
   method: string;
@@ -58,11 +59,15 @@ export class Request extends EventEmitter {
     const client = options.agent.createConnection(this, uri, newoptions);
     const path = options.path;
     const method = options.method;
-    this._req = client.request({
+
+    const requestHeaders = {
       [http2.constants.HTTP2_HEADER_PATH]: path,
       [http2.constants.HTTP2_HEADER_METHOD]: method,
       ...headers,
-    });
+    };
+    delete requestHeaders["Connection"];
+
+    this._req = client.request(requestHeaders);
     this._client = client;
     this.registerListeners();
   }
@@ -156,6 +161,11 @@ export class Request extends EventEmitter {
   // @ts-ignore
   end() {
     this._req.end();
+  }
+
+  setTimeout(timeout, cb){
+    this._req.setTimeout(timeout, cb);
+  
   }
 }
 export function request(options): http.ClientRequest {
