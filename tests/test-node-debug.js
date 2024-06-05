@@ -37,7 +37,7 @@ tape('a simple request should not fail with debugging enabled', function (t) {
     t.ok(stderr.length, 'stderr has some messages')
     var url = s.url.replace(/\//g, '\\/')
     var patterns = [
-      /^REQUEST { uri: /,
+      /^REQUEST {\n  protocolVersion: /,
       new RegExp('^REQUEST make request ' + url + '/\n$'),
       /^REQUEST onRequestResponse /,
       /^REQUEST finish init /,

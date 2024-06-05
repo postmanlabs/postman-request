@@ -7,9 +7,9 @@ const TEST_URL = "https://postman-echo.com/get";
 const httpsurl = 'https://localhost:443'
 const http2url = 'https://localhost:3000/h2'
 const pool = {};
-const proto = 'auto';
+const proto = 'h2';
 const r = request(TEST_URL,{
-  httpVersion: proto,
+  protocolVersion: proto,
   timing:true,
   strictSSL:true,
   gzip:true,
@@ -24,7 +24,7 @@ const r = request(TEST_URL,{
 }, (err, resp, body)=> {
   console.log(resp?.timings, err, body);
   request(TEST_URL,{
-    httpVersion: proto,
+    protocolVersion: proto,
     timing:true,
     strictSSL:true,
     gzip:true,
@@ -38,6 +38,7 @@ const r = request(TEST_URL,{
     // cert: fs.readFileSync('/Users/parth.verma@postman.com/temp/t/cert.pem')
   }, (err, resp, body)=> {
     console.log(resp?.timings)
+    console.log(resp.httpVersion  )
     // console.log({body});
   //
   })

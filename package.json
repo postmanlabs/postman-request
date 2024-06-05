@@ -14,7 +14,7 @@
   },
   "license": "Apache-2.0",
   "engines": {
-    "node": ">= 6"
+    "node": ">= 16"
   },
   "main": "index.js",
   "files": [
@@ -76,8 +76,7 @@
     "server-destroy": "^1.0.1",
     "standard": "^9.0.0",
     "tape": "^4.6.0",
-    "taper": "^0.5.0",
-    "typescript": "^5.4.5"
+    "taper": "^0.5.0"
   },
   "greenkeeper": {
     "ignore": [

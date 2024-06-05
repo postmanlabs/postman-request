@@ -595,7 +595,7 @@ Request.prototype.init = function (options) {
 
   // If user defines httpModules, respect if they have different httpModules for different http versions, else use the tls specific http module
   // If the user defines nothing, revert to default modules
-  self.httpModule = httpModules[protocol]?.[options.httpVersion] || httpModules[protocol] || defaultModules[protocol][options.httpVersion]
+  self.httpModule = httpModules[protocol]?.[options.protocolVersion] || httpModules[protocol] || defaultModules[protocol][options.protocolVersion]
 
   if (!self.httpModule) {
     return self.emit('error', new Error('Invalid protocol: ' + protocol))
@@ -891,7 +891,7 @@ Request.prototype.getNewAgent = function () {
   }
 
   // we're using a stored agent.  Make sure it's protocol-specific
-  poolKey = self.httpVersion + ':' + self.uri.protocol + poolKey
+  poolKey = self.protocolVersion + ':' + self.uri.protocol + poolKey
 
   // generate a new agent for this setting if none yet exists
   if (!self.pool[poolKey]) {

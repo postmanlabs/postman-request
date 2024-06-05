@@ -4,7 +4,7 @@ import * as https from "https";
 import {RequestOptions} from "../http2/request";
 import {MultiProtocolRequest} from "./request";
 import * as tls from "tls";
-import {EventEmitter} from "node:events";
+import {EventEmitter} from "events";
 
 
 interface AgentOptions extends Http2AgentOptions {

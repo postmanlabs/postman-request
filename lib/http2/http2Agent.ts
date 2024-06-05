@@ -1,4 +1,4 @@
-import {EventEmitter} from "node:events";
+import {EventEmitter} from "events";
 import * as http2 from "http2";
 import * as tls from "tls";
 import {RequestOptions} from "./request";

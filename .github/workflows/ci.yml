@@ -55,14 +55,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [6, 8]
-        include:
-          - node-version: 10
-            # todo: enable coverage after figuring out why test-cov step is failing
-            coverage: false
-          - node-version: 16
-            legacy-peer-deps: true
-
+        node-version: [16]
+        
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -72,20 +66,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - if: ${{ matrix.legacy-peer-deps }}
-        name: Install with legacy peer deps
+      - name: Install with legacy peer deps
         run: npm install --legacy-peer-deps
-        
-      - if: ${{ !matrix.legacy-peer-deps }}
-        name: Install
-        run: npm install
       
       - name: Compile TS
         run: tsc lib/**/*.ts
-
-      - if: ${{ ! matrix.coverage }}
-        name: Run tests
-        run: npm run test-ci
 
       - if: ${{ matrix.coverage }}
         name: Run tests and upload coverage

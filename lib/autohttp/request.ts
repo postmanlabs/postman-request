@@ -1,9 +1,9 @@
 import * as http from "http";
 import * as http2 from "http2";
-import {EventEmitter} from "node:events";
+import {EventEmitter} from "events";
 import { RequestOptions, Request as HTTP2Request} from '../../lib/http2/request'
 import {AutoHttp2Agent} from "./agent";
-import {ClientRequest} from "node:http";
+import {ClientRequest} from "http";
 
 
 

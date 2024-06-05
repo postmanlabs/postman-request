@@ -1,7 +1,7 @@
-import {URL} from "node:url";
+import {URL} from "url";
 import * as http from "http";
 import * as http2 from 'http2';
-import {EventEmitter} from "node:events";
+import {EventEmitter} from "events";
 import {Http2Agent} from "./http2Agent";
 
 export interface RequestOptions {
