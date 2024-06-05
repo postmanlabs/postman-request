@@ -72,6 +72,9 @@ jobs:
 
       - name: Install
         run: npm install
+      
+      - name: Compile TS
+        run: tsc lib/**/*.ts
 
       - if: ${{ ! matrix.coverage }}
         name: Run tests

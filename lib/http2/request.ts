@@ -109,6 +109,18 @@ export class Request extends EventEmitter {
         return this;
     }
 
+    setEncoding(encoding){
+        this._req.setEncoding(encoding);
+    }
+
+    write(chunk){
+        this._req.write(chunk);
+    }
+
+    pipe(dest){
+        this._req.pipe(dest);
+    }
+
     on(eventName: string | symbol, listener: (...args: any[]) => void): this {
         if(eventName === 'socket'){
             listener(this._client.socket);

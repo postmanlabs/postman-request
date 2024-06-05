@@ -1,4 +1,3 @@
-import {URL} from "node:url";
 import * as http from "http";
 import * as http2 from "http2";
 import {EventEmitter} from "node:events";
@@ -29,6 +28,7 @@ export class MultiProtocolRequest extends EventEmitter implements http.ClientReq
 
 
         const agent = options.agent;
+        // @ts-ignore
         agent.createConnection(this, options);
         this.registerAgentCallback(agent);
 
@@ -80,6 +80,14 @@ export class MultiProtocolRequest extends EventEmitter implements http.ClientReq
             if (op === 'write') {
                 ob.write(...args)
             }
+
+            if (op === 'setDefaultEncoding'){
+                ob.setDefaultEncoding(args);
+            }
+
+            if (op === 'pipe'){
+                ob.pipe(...args);
+            }
         })
     }
 
@@ -91,6 +99,16 @@ export class MultiProtocolRequest extends EventEmitter implements http.ClientReq
     end() {
         this.queuedOps.push(['end']);
         return this;
+    }
+
+    setDefaultEncoding(encoding: BufferEncoding): this {
+        this.queuedOps.push(['setDefaultEncoding', encoding])
+        return this;
+    }
+
+    pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean | undefined; } | undefined): T {
+        this.queuedOps.push(['pipe', destination, options]);
+        return destination;
     }
 }
 

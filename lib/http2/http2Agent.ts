@@ -67,14 +67,12 @@ export class Http2Agent extends EventEmitter {
             connection.refCount = 0;
             connection.ref = function () {
                 this.refCount++;
-                console.log('refing', this.refCount);
                 if (this.refCount > 0) {
                     oldRef.call(this)
                 }
             }
             connection.unref = function () {
                 this.refCount--;
-                console.log('unrefing', this.refCount)
                 if (this.refCount === 0) {
                     oldUnref.call(this)
 

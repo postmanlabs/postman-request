@@ -23,6 +23,14 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
         this.ALPNCache = new Map();
     }
 
+    on<K>(eventName: string | symbol, listener: (...args: any[]) => void): this;
+    on<K>(eventName: string | symbol, listener: (...args: any[]) => void): this;
+    on(eventName: string, listener: unknown): this {
+        console.log('on', eventName);
+        // @ts-ignore
+        return super.on(eventName, listener);
+    }
+
     createConnection(req: MultiProtocolRequest, options: RequestOptions) {
         const uri = options.uri;
         const port = options.port ?? 443;
@@ -31,15 +39,15 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
         const hostnameCache = this.ALPNCache.get(uri.hostname) ?? new Map<number, string>();
         const protocol = hostnameCache.get(port);
         if (protocol === 'h2') {
-            console.log('using cached alpn');
+            // console.log('using cached alpn');
             // @ts-ignore
             const connection = this.http2Agent.createConnection(req, uri, options);
-            console.log('emitting h2');
+            // console.log('emitting h2');
             process.nextTick(()=>this.emit('h2', connection));
             return;
         }
         if(protocol === 'http/1.1'){
-            console.log('using cached alpn');
+            // console.log('using cached alpn');
             const requestOptions: https.RequestOptions = {
                 port: options.port ?? 443,
                 host: options.uri.host,
@@ -89,7 +97,6 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
             }
 
             this.emit('socket', socket);
-            socket.on('free', ()=>console.log('socket free'))
 
             // options.createConnection = () => {
             //     return this.socket
