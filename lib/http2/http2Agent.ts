@@ -39,11 +39,13 @@ export class Http2Agent extends EventEmitter {
 
         let connection = this.connections[name];
 
+
         if (!connection || connection.destroyed || connection.closed) {
             // check if a socket is supplied
 
             let connectionOptions: http2.SecureClientSessionOptions = {};
             if(socket){
+
                 connectionOptions.createConnection = () => socket;
             }
             else {
@@ -53,6 +55,7 @@ export class Http2Agent extends EventEmitter {
                     protocol: 'https:'
                 }
             }
+
 
             connection = http2.connect(uri, connectionOptions);
 
@@ -80,13 +83,22 @@ export class Http2Agent extends EventEmitter {
                 }
             }
 
-            connection.once('ready', () => {
-                // start the timeout only when the connection is in ready state, otherwise the connection closes early
-                connection.setTimeout(options?.agentOptions?.timeout ?? 5000, () => {
+            connection.once('connect', () => {
 
-                    delete this.connections[name];
+                // start the timeout only when the connection is in ready state, otherwise the connection closes early
+                connection.setTimeout(options?.agentOptions?.timeout ?? 30000, () => {
+
                     // this.connections[name] = undefined;
-                    connection.close();
+                    //@ts-ignore
+                    console.log(Date.now(), 'timeout', options?.agentOptions?.timeout ?? 30000, connection.refCount)
+                    //@ts-ignore
+                    if(connection.refCount === 0){
+
+                    connection.close(()=>{
+                        connection.destroy();
+                    });
+                    delete this.connections[name];
+                }
                     // console.log('timeout', options.timeout)
                 })
             });

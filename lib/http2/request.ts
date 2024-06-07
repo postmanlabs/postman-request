@@ -4,7 +4,6 @@ import * as http2 from "http2";
 import { EventEmitter } from "events";
 import { Http2Agent } from "./http2Agent";
 
-
 export interface RequestOptions {
   path: string;
   method: string;
@@ -29,15 +28,14 @@ export interface RequestOptions {
   };
 }
 
-export class Request extends EventEmitter {
-  private _req: http2.ClientHttp2Stream;
+export class Http2Request extends EventEmitter {
+  stream: http2.ClientHttp2Stream;
   private _client: http2.ClientHttp2Session;
-  private response: http2.IncomingHttpHeaders;
 
   constructor(options: RequestOptions) {
     super();
     this.onError = this.onError.bind(this);
-
+    this.registerListeners = this.registerListeners.bind(this);
     const headers = options.headers;
 
     // @ts-ignore
@@ -67,13 +65,13 @@ export class Request extends EventEmitter {
     };
     delete requestHeaders["Connection"];
 
-    this._req = client.request(requestHeaders);
+    this.stream = client.request(requestHeaders);
     this._client = client;
     this.registerListeners();
   }
 
   get _header() {
-    return Object.entries(this._req.sentHeaders)
+    return Object.entries(this.stream.sentHeaders)
       .map(([key, value]) => `${key}: ${value}`)
       .join("/r/n");
   }
@@ -82,42 +80,33 @@ export class Request extends EventEmitter {
     return "2.0";
   }
 
-  get rawHeaders() {
-    return Object.entries(this.response)
-      .map(([key, value]) => `${key}: ${value}`)
-      .join("/r/n");
-  }
-
-  get headers() {
-    return this.response;
-  }
-
-  get statusCode() {
-    return this.response[http2.constants.HTTP2_HEADER_STATUS];
-  }
-
   private registerListeners() {
-    this._req.on("drain", (...args) => this.emit("drain", ...args));
-    this._req.on("error", (e) => console.log(e));
-    this._req.on("error", (...args) => this.emit("error", ...args));
-    this._req.on("data", (...args) => this.emit("data", ...args));
-    this._req.on("end", (...args) => {
-      this.emit("end", ...args);
-    });
-    this._req.on("close", (...args) => {
+    this.stream.on("drain", (...args) => this.emit("drain", ...args));
+    this.stream.on("error", (...args) => this.emit("error", ...args));
+
+
+    this.stream.on("close", (...args) => {
       this.emit("close", ...args);
     });
-    this._req.on("socket", () => this.emit("socket", this._client.socket));
+    this.stream.on("socket", () => this.emit("socket", this._client.socket));
     this._client.once("error", this.onError);
-    this._req.on("response", (response) => {
+    this.stream.on("response", (response) => {
+      this.emit("response", new ResponseProxy(response, this));
 
-      this.response = response;
-      this.emit("response", this);
+      // HTTP response events returns a readable stream which has data event that consumers listen on to get the response body
+      // With HTTP2 the response object is a header object and the body is streamed via the data event.
+      // To maintain compatibilty with the HTTP API, we need to emit the data after the response event is emitted
+      // And wait for the data listeners to be attached
+      // TODO: Refactor this logic to be more elegant
+      // setImmediate(() => {
+      //   this.stream.resume();
+      // });
     });
     //
-    this._req.once("end", () => {
+    this.stream.on("end", () => {
       this._client.off("error", this.onError);
       this.emit("end");
+
     });
   }
 
@@ -126,20 +115,20 @@ export class Request extends EventEmitter {
   }
 
   setDefaultEncoding(encoding: BufferEncoding): this {
-    this._req.setDefaultEncoding(encoding);
+    this.stream.setDefaultEncoding(encoding);
     return this;
   }
 
   setEncoding(encoding) {
-    this._req.setEncoding(encoding);
+    this.stream.setEncoding(encoding);
   }
 
   write(chunk) {
-    this._req.write(chunk);
+    this.stream.write(chunk);
   }
 
   pipe(dest) {
-    this._req.pipe(dest);
+    this.stream.pipe(dest);
   }
 
   on(eventName: string | symbol, listener: (...args: any[]) => void): this {
@@ -147,33 +136,87 @@ export class Request extends EventEmitter {
       listener(this._client.socket);
       return this;
     }
+
+
     return super.on(eventName, listener);
   }
 
-  pause(){
-    this._req.pause();
+
+  abort() {
+    this.stream.destroy();
   }
 
-  resume(){
-    this._req.resume();
-  }
-
-  // @ts-ignore
   end() {
-    this._req.end();
-  }
-
-  setTimeout(timeout, cb){
-    this._req.setTimeout(timeout, cb);
+    this.stream.end();
+}
   
-  }
-
-  abort(){
-    this._req.destroy();
-  }
-
 }
 export function request(options): http.ClientRequest {
   // @ts-ignore
-  return new Request(options);
+  return new Http2Request(options);
+}
+
+class ResponseProxy extends EventEmitter {
+  private req: Http2Request;
+  private response: http2.IncomingHttpHeaders;
+  constructor(response: http2.IncomingHttpHeaders, request: Http2Request) {
+    super();
+    this.req = request;
+    this.response = response;
+    this.on = this.on.bind(this);
+    this.registerRequestListeners();
+  }
+
+  registerRequestListeners() {
+
+    this.req.stream.on("end", () => this.emit("end"));
+    this.req.stream.on("error", (e) => this.emit("error", e));
+    this.req.stream.on("close", () => this.emit("close"));
+  }
+
+  on(eventName: string | symbol, listener: (...args: any[]) => void): this {
+    super.on(eventName, listener);
+    if (eventName === "data") {
+
+      // Attach the data listener to the request stream only when there is a listener.
+      // This is because the data event is emitted by the request stream and the response stream is a proxy
+      // that forwards the data event to the response object.
+      // If there is no listener attached and we use the event forwarding pattern above, the data event will still be emitted
+      // but with no listeners attached to it, thus causing data loss.
+      this.req.stream.on("data", (chunk) => {
+
+        this.emit("data", chunk);
+      });
+    }
+    return this;
+  }
+
+  get statusCode() {
+    return this.response[http2.constants.HTTP2_HEADER_STATUS];
+  }
+
+  get rawHeaders() {
+    return Object.entries(this.response)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join("\r\n");
+  }
+
+  get headers() {
+    return this.response;
+  }
+
+  pause() {
+    this.req.stream.pause();
+  }
+
+  resume() {
+    this.req.stream.resume();
+  }
+
+ 
+
+  setTimeout(timeout, cb) {
+    this.req.stream.setTimeout(timeout, cb);
+  }
+
 }
