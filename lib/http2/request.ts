@@ -15,7 +15,7 @@ export interface RequestOptions {
   key?: Buffer;
   pfx?: Buffer;
   passphrase?: string;
-  port?: number;
+  port?: string;
   protocol: "auto" | "h2" | "http1";
   proxy?: unknown;
   uri: URL;
@@ -149,7 +149,7 @@ export class Http2Request extends EventEmitter {
   end() {
     this.stream.end();
 }
-  
+
 }
 export function request(options): http.ClientRequest {
   // @ts-ignore
@@ -213,7 +213,14 @@ class ResponseProxy extends EventEmitter {
     this.req.stream.resume();
   }
 
- 
+  pipe(dest) {
+    this.req.stream.pipe(dest);
+  }
+
+  setEncoding(encoding) {
+    this.req.stream.setEncoding(encoding);
+  }
+
 
   setTimeout(timeout, cb) {
     this.req.stream.setTimeout(timeout, cb);

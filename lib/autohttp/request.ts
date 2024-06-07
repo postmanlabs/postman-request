@@ -30,7 +30,11 @@ export class MultiProtocolRequest extends EventEmitter implements http.ClientReq
         // Request agent to perform alpn and return either an http agent or https agent
         // Pass the request to the agent, the agent then calls the callback with http or h2 argument based on the result of alpn negotiation
         // @ts-ignore
-        agent.createConnection(this, options, (proto, req)=>{
+        agent.createConnection(this, options, (err, proto, req)=>{
+            if(err){
+                this.emit('error', err);
+                return;
+            }
             if(proto === 'h2'){
                 this.onHttp2(req);
             }
@@ -88,7 +92,7 @@ export class MultiProtocolRequest extends EventEmitter implements http.ClientReq
 
         this.queuedOps.forEach(([op, ...args]) => {
             if (op === 'end') {
-                ob.end()
+                ob.end(...args)
             }
 
             if (op === 'write') {
@@ -110,32 +114,55 @@ export class MultiProtocolRequest extends EventEmitter implements http.ClientReq
                 ob.abort();
             }
         })
+        this.queuedOps = [];
     }
 
     write (data: any) {
+        if(this._req){
+            this._req.write(data);
+            return true;
+        }
         this.queuedOps.push(['write', data]);
         return true;
     }
 
-    end() {
-        this.queuedOps.push(['end']);
+    end(data: any) {
+        if (this._req){
+            this._req.end(data)
+            return this;
+        }
+        this.queuedOps.push(['end', data]);
         return this;
     }
 
     setDefaultEncoding(encoding: BufferEncoding): this {
+        if(this._req){
+            this._req.setDefaultEncoding(encoding);
+            return this;
+        }
+
         this.queuedOps.push(['setDefaultEncoding', encoding])
         return this;
     }
 
     pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean | undefined; } | undefined): T {
+        if(this._req){
+            this._req.pipe(destination, options);
+            return destination;
+        }
         this.queuedOps.push(['pipe', destination, options]);
         return destination;
     }
 
     setTimeout(timeout: number, callback?: (() => void) | undefined): this {
+        if(this._req){
+            // @ts-ignore
+            this._req.setTimeout(timeout, callback());
+            return this;
+        }
         this.queuedOps.push(['setTimeout', timeout, callback]);
         return this;
-    
+
     }
 
     abort(): this {

@@ -1,6 +1,8 @@
 import {Agent} from 'https';
 import {Http2Agent, type AgentOptions as Http2AgentOptions} from "../http2/http2Agent";
 import * as https from "https";
+import * as http2 from "http2";
+import * as http from "http";
 import {RequestOptions} from "../http2/request";
 import {MultiProtocolRequest} from "./request";
 import * as tls from "tls";
@@ -8,6 +10,12 @@ import {EventEmitter} from "events";
 
 
 interface AgentOptions extends Http2AgentOptions {
+}
+
+interface CreateConnectionCallback{
+    (err:null | Error, proto:'h2', connection: http2.ClientHttp2Session)
+    (err:null | Error, proto:'http1', connection: http.ClientRequest)
+    (err: Error)
 }
 
 // @ts-ignore
@@ -24,9 +32,9 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
         this.ALPNCache = new Map();
     }
 
-    createConnection(req: MultiProtocolRequest, options: RequestOptions, cb) {
+    createConnection(req: MultiProtocolRequest, options: RequestOptions, cb: CreateConnectionCallback) {
         const uri = options.uri;
-        const port = options.port ?? 443;
+        const port = Number.parseInt(options.port ?? '443');
         // check if there is ALPN cached
         const hostnameCache = this.ALPNCache.get(uri.hostname) ?? new Map<number, string>();
         const protocol = hostnameCache.get(port);
@@ -35,32 +43,28 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
             // @ts-ignore
             const connection = this.http2Agent.createConnection(req, uri, options);
             // console.log('emitting h2');
-            // process.nextTick(()=>this.emit('h2', connection));
-            cb('h2', connection);
+            cb(null, 'h2', connection);
             return;
         }
         if(protocol === 'http/1.1' || protocol === 'http/1.0'){
 
             const requestOptions: https.RequestOptions = {
-                port: options.port ?? 443,
-                host: options.uri.host,
+                port,
+                host: uri.hostname,
                 method: options.method,
                 path: options.path,
                 headers: options.headers,
-                agent: this.httpsAgent
-                // createConnection: () => socket
-                // timeout: 5000
+                agent: this.httpsAgent,
+                ca: options.ca,
+                key: options.key,
+                cert: options.cert,
+                rejectUnauthorized: options.rejectUnauthorized
             };
 
-
-
             const request = https.request(requestOptions);
-            // @ts-ignore
-            cb('http1', request);
-            // process.nextTick(()=>this.emit('http1', request));
+            cb(null, 'http1', request);
             return;
         }
-
 
         const newOptions: tls.ConnectionOptions = {
             port,
@@ -70,13 +74,14 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
             cert: options.cert,
             host: uri.hostname,
             servername: uri.hostname,
-            rejectUnauthorized: options.rejectUnauthorized
+            rejectUnauthorized: options.rejectUnauthorized,
         }
+
         const socket = tls.connect(newOptions);
         socket.once('secureConnect', () => {
             const protocol = socket.alpnProtocol;
             if (!protocol) {
-                this.emit('error', socket.authorizationError)
+                cb(socket.authorizationError, null, null);
                 socket.end();
                 return;
             }
@@ -99,8 +104,7 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
             if (protocol === 'h2') {
                 // @ts-ignore
                 const connection = this.http2Agent.createConnection(req, uri, options, socket);
-                // this.emit('h2', connection);
-                cb('h2', connection);
+                cb(null, 'h2', connection);
             } else if (protocol === 'http/1.1') {
                 // Protocol is http1, using the built in
                 // We need to release all free sockets so that new connection is created using the overriden createconnection forcing the agent to reuse the socket used for alpn
@@ -115,8 +119,8 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
                 };
                 const requestOptions: https.RequestOptions = {
                     // agent: this.httpsAgent,
-                    port: options.port ?? 443,
-                    host: options.uri.host,
+                    port,
+                    host: options.uri.hostname,
                     method: options.method,
                     path: options.path,
                     headers: options.headers,
@@ -131,10 +135,10 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
                 // @ts-ignore
                 this.httpsAgent.createConnection = oldCreateConnection;
                 // this.emit('http1', request);
-                cb('http1', request);
+                cb(null, 'http1', request);
 
             } else {
-                this.emit('error', 'Unknown protocol' + protocol)
+                cb(new Error('Unknown protocol' + protocol), null, null);
                 return;
 
             }

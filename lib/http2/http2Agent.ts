@@ -51,7 +51,17 @@ export class Http2Agent extends EventEmitter {
             else {
 
                 connectionOptions = {
-                    ...options,
+                    ca: options.ca,
+                    // extraCa: options.extraCa,
+                    ciphers: options.ciphers,
+                    secureProtocol: options.secureProtocol,
+                    secureOptions: options.secureOptions,
+                    rejectUnauthorized: options.rejectUnauthorized,
+                    key: options.key,
+                    cert: options.cert,
+                    pfx: options.pfx,
+                    passphrase: options.passphrase,
+
                     protocol: 'https:'
                 }
             }
