@@ -7,7 +7,7 @@ import {ClientRequest} from "http";
 
 
 
-interface AutoRequestOptions extends Omit<RequestOptions, 'agent'>{
+export interface AutoRequestOptions extends Omit<RequestOptions, 'agent'>{
     agent: AutoHttp2Agent;
 }
 

@@ -1,42 +1,27 @@
 import {EventEmitter} from "events";
 import * as http2 from "http2";
 import * as tls from "tls";
-import {RequestOptions} from "./request";
+import type * as https from 'https';
 
-interface Options {
-    host?: string;
-    port?: string;
+export interface HTTP2ClientRequestOptions extends Omit<http2.SecureClientSessionOptions, 'createConnection'> {
     localAddress?: string;
-
-}
-
-export interface AgentOptions{
-    ca?: Buffer;
-    extraCa?:string;
-    ciphers?: string;
-    secureProtocol?: string;
-    secureOptions?: number;
-    rejectUnauthorized?: boolean;
-    key?: Buffer;
-    cert?: Buffer;
-    pfx?: Buffer;
-    passphrase?:string;
-
 }
 
 export class Http2Agent extends EventEmitter {
-    private options: AgentOptions;
-    private connections: Record<string, http2.ClientHttp2Session> = {};
+    private readonly options: http2.SecureClientSessionOptions;
+    private readonly connections: Record<string, http2.ClientHttp2Session> = {};
+
     // sockets: Record<string, tls.TLSSocket> = {};
 
-    constructor(options: AgentOptions){
+    constructor(options: https.AgentOptions) {
         super();
         this.options = options;
     }
 
-    createConnection(req, uri: URL, options: RequestOptions, socket?: tls.TLSSocket) {
-        const name = this.getName(uri)
-
+    createConnection(req, uri: URL, options: HTTP2ClientRequestOptions, socket?: tls.TLSSocket) {
+        const _options = {...options, ...this.options};
+        const name = this.getName(_options)
+        // TODO: Handle socketpath to path conversion
         let connection = this.connections[name];
 
 
@@ -44,28 +29,15 @@ export class Http2Agent extends EventEmitter {
             // check if a socket is supplied
 
             let connectionOptions: http2.SecureClientSessionOptions = {};
-            if(socket){
 
+            // TODO: Handle localaddress options
+
+            // Omitting create connections since there is a signature mismatch b/w http1 and http2 and we don't want to mess with it.
+            connectionOptions = {..._options, createConnection: undefined, port: _options.port || 443};
+
+            if (socket) {
                 connectionOptions.createConnection = () => socket;
             }
-            else {
-
-                connectionOptions = {
-                    ca: options.ca,
-                    // extraCa: options.extraCa,
-                    ciphers: options.ciphers,
-                    secureProtocol: options.secureProtocol,
-                    secureOptions: options.secureOptions,
-                    rejectUnauthorized: options.rejectUnauthorized,
-                    key: options.key,
-                    cert: options.cert,
-                    pfx: options.pfx,
-                    passphrase: options.passphrase,
-
-                    protocol: 'https:'
-                }
-            }
-
 
             connection = http2.connect(uri, connectionOptions);
 
@@ -96,20 +68,16 @@ export class Http2Agent extends EventEmitter {
             connection.once('connect', () => {
 
                 // start the timeout only when the connection is in ready state, otherwise the connection closes early
-                connection.setTimeout(options?.agentOptions?.timeout ?? 30000, () => {
+                connection.setTimeout(options?.timeout ?? 30000, () => {
 
-                    // this.connections[name] = undefined;
                     //@ts-ignore
-                    console.log(Date.now(), 'timeout', options?.agentOptions?.timeout ?? 30000, connection.refCount)
-                    //@ts-ignore
-                    if(connection.refCount === 0){
+                    if (connection.refCount === 0) {
 
-                    connection.close(()=>{
-                        connection.destroy();
-                    });
-                    delete this.connections[name];
-                }
-                    // console.log('timeout', options.timeout)
+                        connection.close(() => {
+                            connection.destroy();
+                        });
+                        delete this.connections[name];
+                    }
                 })
             });
 
@@ -125,7 +93,7 @@ export class Http2Agent extends EventEmitter {
     }
 
 
-    getName(options: Options) {
+    getName(options: HTTP2ClientRequestOptions) {
         let name = options.host || 'localhost';
 
         name += ':';
@@ -136,13 +104,88 @@ export class Http2Agent extends EventEmitter {
         if (options.localAddress)
             name += options.localAddress;
 
-        // Pacify parallel/test-http-agent-getname by only appending
-        // the ':' when options.family is set.
-        // if (options.family === 4 || options.family === 6)
-        //     name += `:${options.family}`;
+        if (options.path)
+            name += `:${options.path}`;
 
-        // if (options.socketPath)
-        //     name += `:${options.socketPath}`;
+        name += ':';
+        if (options.ca)
+            name += options.ca;
+
+        name += ':';
+        if (options.cert)
+            name += options.cert;
+
+        name += ':';
+        if (options.clientCertEngine)
+            name += options.clientCertEngine;
+
+        name += ':';
+        if (options.ciphers)
+            name += options.ciphers;
+
+        name += ':';
+        if (options.key)
+            name += options.key;
+
+        name += ':';
+        if (options.pfx)
+            name += options.pfx;
+
+        name += ':';
+        if (options.rejectUnauthorized !== undefined)
+            name += options.rejectUnauthorized;
+
+        name += ':';
+        if (options.servername && options.servername !== options.host)
+            name += options.servername;
+
+        name += ':';
+        if (options.minVersion)
+            name += options.minVersion;
+
+        name += ':';
+        if (options.maxVersion)
+            name += options.maxVersion;
+
+        name += ':';
+        if (options.secureProtocol)
+            name += options.secureProtocol;
+
+        name += ':';
+        if (options.crl)
+            name += options.crl;
+
+        name += ':';
+        if (options.honorCipherOrder !== undefined)
+            name += options.honorCipherOrder;
+
+        name += ':';
+        if (options.ecdhCurve)
+            name += options.ecdhCurve;
+
+        name += ':';
+        if (options.dhparam)
+            name += options.dhparam;
+
+        name += ':';
+        if (options.secureOptions !== undefined)
+            name += options.secureOptions;
+
+        name += ':';
+        if (options.sessionIdContext)
+            name += options.sessionIdContext;
+
+        name += ':';
+        if (options.sigalgs)
+            name += JSON.stringify(options.sigalgs);
+
+        name += ':';
+        if (options.privateKeyIdentifier)
+            name += options.privateKeyIdentifier;
+
+        name += ':';
+        if (options.privateKeyEngine)
+            name += options.privateKeyEngine;
 
         return name;
     }
