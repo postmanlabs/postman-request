@@ -4,7 +4,7 @@ import {EventEmitter} from "events";
 import { RequestOptions, Http2Request as HTTP2Request} from '../../lib/http2/request'
 import {AutoHttp2Agent} from "./agent";
 import {ClientRequest} from "http";
-
+import type * as tls from 'tls';
 
 
 export interface AutoRequestOptions extends Omit<RequestOptions, 'agent'>{
@@ -17,13 +17,12 @@ export class MultiProtocolRequest extends EventEmitter implements http.ClientReq
     private queuedOps: any[] = [];
     private options: AutoRequestOptions;
     private _req: http.ClientRequest | HTTP2Request;
+    socket: tls.TLSSocket
 
     constructor(options: AutoRequestOptions) {
         super();
         this.onHttp2 = this.onHttp2.bind(this);
         this.onHttp = this.onHttp.bind(this);
-        this.onSocket = this.onSocket.bind(this);
-        this.registerAgentCallback = this.registerAgentCallback.bind(this);
         this.options = options;
 
         const agent = options.agent;
@@ -41,16 +40,18 @@ export class MultiProtocolRequest extends EventEmitter implements http.ClientReq
             if(proto === 'http1'){
                 this.onHttp(req);
             }
+        }, (socket)=>{
+            // Socket from agent will not be called if ALPN cache already exists
+            // Thus, we maintain a flag to check either the socket callback from agent is emitted,
+            // and only emit socket event from request if this callback isn't called
+
+            // Need to register callback after this tick, after the on socket handlers have been registered.
+            // Node also does something similar when emitting the socket event.
+            process.nextTick(()=>this.emit('socket', socket));
+            this.socket = socket;
         });
 
 
-    }
-
-    private onSocket(socket: any){
-        this.emit('socket', socket);
-    }
-    registerAgentCallback(agent: AutoHttp2Agent){
-        agent.once('socket', this.onSocket);
     }
 
     onHttp2(connection: http2.ClientHttp2Session){
@@ -81,7 +82,6 @@ export class MultiProtocolRequest extends EventEmitter implements http.ClientReq
         ob.on('close', (...args) => {this.emit('close', ...args);
 
         })
-        ob.on('socket', (...args) => this.emit('socket', ...args))
         ob.on('response', (...args) => {
             this.emit('response', ...args)})
 

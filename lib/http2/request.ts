@@ -41,9 +41,12 @@ export class Http2Request extends EventEmitter {
         const requestHeaders = {
             [http2.constants.HTTP2_HEADER_PATH]: options.path,
             [http2.constants.HTTP2_HEADER_METHOD]: options.method,
+            // @ts-ignore
+            [http2.constants.HTTP2_HEADER_AUTHORITY]: options.uri.hostname,
             ...headers,
         };
         delete requestHeaders["Connection"];
+        delete requestHeaders['Host'];
 
         this.stream = client.request(requestHeaders);
         this._client = client;
@@ -125,6 +128,10 @@ export class Http2Request extends EventEmitter {
         this.stream.end();
     }
 
+    setTimeout(){
+        // todo
+    }
+
 }
 
 export function request(options: RequestOptions): http.ClientRequest {
@@ -148,7 +155,9 @@ class ResponseProxy extends EventEmitter {
 
         this.req.stream.on("end", () => this.emit("end"));
         this.req.stream.on("error", (e) => this.emit("error", e));
-        this.req.stream.on("close", () => this.emit("close"));
+        this.req.stream.on("close", () => {
+            this.emit("close")
+        });
     }
 
     on(eventName: string | symbol, listener: (...args: any[]) => void): this {
@@ -173,9 +182,17 @@ class ResponseProxy extends EventEmitter {
     }
 
     get rawHeaders() {
-        return Object.entries(this.response)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join("\r\n");
+        let headersArray =  Object.entries(this.response).flat()
+        const setCookieHeaderIndex = headersArray.findIndex(key => key === http2.constants.HTTP2_HEADER_SET_COOKIE);
+        if (setCookieHeaderIndex !== -1){
+            const setCookieHeadersArray = (this.response[http2.constants.HTTP2_HEADER_SET_COOKIE] as string[]).map((val)=>([
+                http2.constants.HTTP2_HEADER_SET_COOKIE,
+                val
+            ])).flat();
+            headersArray = headersArray.slice(0,setCookieHeaderIndex).concat(setCookieHeadersArray, headersArray.slice(setCookieHeaderIndex+2))
+        }
+
+        return headersArray;
     }
 
     get headers() {

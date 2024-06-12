@@ -20,6 +20,7 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
     private http2Agent: Http2Agent;
     private httpsAgent: https.Agent;
     private ALPNCache: Map<string, Map<number, string>>;
+    defaultPort = 443;
 
     constructor(options: https.AgentOptions) {
         super();
@@ -28,10 +29,10 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
         this.ALPNCache = new Map();
     }
 
-    createConnection(req: MultiProtocolRequest, options: AutoRequestOptions, cb: CreateConnectionCallback) {
+    createConnection(req: MultiProtocolRequest, options: AutoRequestOptions, cb: CreateConnectionCallback, socketCb: (socket: tls.TLSSocket)=>void) {
         // @ts-ignore
         const uri = options.uri;
-        const port = Number(options.port || '443');
+        const port = Number(options.port || this.defaultPort);
         // check if there is ALPN cached
         // TODO: Replace map of map cache with getName based cache
         const hostnameCache = this.ALPNCache.get(uri.hostname) ?? new Map<number, string>();
@@ -45,6 +46,7 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
             };
             const connection = this.http2Agent.createConnection(req, uri, newOptions);
             cb(null, 'h2', connection);
+            socketCb(connection.socket as tls.TLSSocket);
             return;
         }
         if (protocol === 'http/1.1' || protocol === 'http/1.0') {
@@ -56,6 +58,7 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
             };
 
             const request = https.request(requestOptions);
+            request.on('socket', (socket)=>socketCb(socket as tls.TLSSocket))
             cb(null, 'http1', request);
             return;
         }
@@ -71,6 +74,7 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
         }
 
         const socket = tls.connect(newOptions);
+        socketCb(socket);
         socket.on('error', (e) => cb(e));
         socket.once('secureConnect', () => {
             const protocol = socket.alpnProtocol;
@@ -88,9 +92,6 @@ export class AutoHttp2Agent extends EventEmitter implements Agent {
             } else {
                 hostnameCache.set(port, protocol);
             }
-
-            this.emit('socket', socket);
-
 
             if (protocol === 'h2') {
                 const newOptions: HTTP2ClientRequestOptions = {
