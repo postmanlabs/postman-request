@@ -595,7 +595,12 @@ Request.prototype.init = function (options) {
 
   // If user defines httpModules, respect if they have different httpModules for different http versions, else use the tls specific http module
   // If the user defines nothing, revert to default modules
-  self.httpModule = httpModules[protocol]?.[options.protocolVersion] || httpModules[protocol] || defaultModules[protocol][options.protocolVersion]
+  self.httpModule = httpModules[protocol]?.[self.protocolVersion] || httpModules[protocol] || defaultModules[protocol][self.protocolVersion]
+
+  if (!httpModules[protocol]?.[options.protocolVersion] && httpModules[protocol]){
+    // If the user is only specifying https/http modules, revert to http1
+    self.protocolVersion = 'http1';
+  }
 
   if (!self.httpModule) {
     return self.emit('error', new Error('Invalid protocol: ' + protocol))
@@ -1277,6 +1282,8 @@ Request.prototype.onRequestResponse = function (response) {
     headers: parseResponseHeaders(response.rawHeaders),
     httpVersion: response.httpVersion
   }
+
+  self._reqResInfo.request.httpVersion = response.httpVersion
 
   if (self.timing) {
     self._reqResInfo.timingStart = self.startTime

@@ -193,3 +193,4 @@ export class Http2Agent extends EventEmitter {
 }
 
 // export const
+export const globalAgent = new Http2Agent({});

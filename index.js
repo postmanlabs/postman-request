@@ -38,12 +38,12 @@ function initParams (uri, options, callback) {
 
   // Disable http/2 when using custom agents that don't handle different versions separately
   if (params.agents && !(params.agents.http1 || params.agents.auto || params.agents.h2)){
-    params.protocolVersion = 'http1';
+    params.protocolVersion = 'http1'
   }
 
   // Disable http/2 when using proxy or tunnels
   if (params.tunnel || params.proxy){
-    params.protocolVersion = 'http1';
+    params.protocolVersion = 'http1'
   }
 
   return params

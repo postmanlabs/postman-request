@@ -3,12 +3,17 @@ import * as http from "http";
 import * as http2 from "http2";
 import {EventEmitter} from "events";
 import type * as https from 'https';
-import {type Http2Agent, HTTP2ClientRequestOptions} from "./http2Agent";
+import {type Http2Agent, HTTP2ClientRequestOptions, globalAgent} from "./http2Agent";
 
-// TODO: migrate implementation of create connection, but make sure it doesn't interfere with ALPN
+
 export interface RequestOptions extends Omit<https.RequestOptions, 'agent' | 'createConnection' | 'protocol'> {
     agent?: Http2Agent;
     protocol?: 'https:'
+}
+
+function httpOptionsToUri(options: RequestOptions): URL {
+    const url = new URL('https://'+ (options.host || 'localhost'));
+    return url;
 }
 
 export class Http2Request extends EventEmitter {
@@ -21,10 +26,7 @@ export class Http2Request extends EventEmitter {
         this.registerListeners = this.registerListeners.bind(this);
         const headers = options.headers;
 
-
-
-        // @ts-ignore Need to figure out how node is doing it internally, replicate and remove the need for this
-        const uri: URL = options.uri;
+        const uri = httpOptionsToUri(options);
         const newoptions: HTTP2ClientRequestOptions = {
             ...options,
             port: Number(options.port || 443),
@@ -36,15 +38,18 @@ export class Http2Request extends EventEmitter {
             options.path = options.socketPath;
         }
 
-        const client = options.agent.createConnection(this, uri, newoptions);
+        const agent = options.agent || globalAgent;
+
+        const client = agent.createConnection(this, uri, newoptions);
 
         const requestHeaders = {
-            [http2.constants.HTTP2_HEADER_PATH]: options.path,
+            [http2.constants.HTTP2_HEADER_PATH]: options.path || '/',
             [http2.constants.HTTP2_HEADER_METHOD]: options.method,
-            // @ts-ignore
-            [http2.constants.HTTP2_HEADER_AUTHORITY]: options.uri.hostname,
+            [http2.constants.HTTP2_HEADER_AUTHORITY]: uri.hostname,
             ...headers,
         };
+
+        // Remove blacklisted http/1 headers
         delete requestHeaders["Connection"];
         delete requestHeaders['Host'];
 
@@ -128,8 +133,8 @@ export class Http2Request extends EventEmitter {
         this.stream.end();
     }
 
-    setTimeout(){
-        // todo
+    setTimeout(timeout: number, cb: () => void){
+        this.stream.setTimeout(timeout, cb);
     }
 
 }
@@ -142,6 +147,7 @@ export function request(options: RequestOptions): http.ClientRequest {
 class ResponseProxy extends EventEmitter {
     private readonly req: Http2Request;
     private readonly response: http2.IncomingHttpHeaders;
+    httpVersion: string = "2.0";
 
     constructor(response: http2.IncomingHttpHeaders, request: Http2Request) {
         super();
@@ -214,10 +220,4 @@ class ResponseProxy extends EventEmitter {
     setEncoding(encoding: BufferEncoding) {
         this.req.stream.setEncoding(encoding);
     }
-
-
-    setTimeout(timeout: number, cb: () => void) {
-        this.req.stream.setTimeout(timeout, cb);
-    }
-
 }

@@ -232,7 +232,7 @@ tape('HTTPS: redirected request is timed with rollup', function (t) {
 
 tape('HTTPS: keepAlive is timed', function (t) {
   var agent = new https.Agent({ keepAlive: true })
-  var options = { time: true, agent: agent, strictSSL: false }
+  var options = { time: true, agent: agent, strictSSL: false, protocolVersion: 'http1' }
   var start1 = new Date().getTime()
 
   request('https://localhost:' + httpsServer.port + '/', options, function (err1, res1, body1) {
