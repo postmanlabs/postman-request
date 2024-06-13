@@ -58,14 +58,9 @@ export class Http2Request extends EventEmitter {
     delete this.requestHeaders.Connection
     delete this.requestHeaders.Host
 
+    this.stream = this._client.request(this.requestHeaders)
+    this.registerListeners()
 
-
-    // process.nextTick(() => {
-      // Perform the request at the end of this tick to allow requests to remove blacklisted headers,
-      // since http2 headers are immutable once the request is created
-      this.stream = this._client.request(this.requestHeaders)
-      this.registerListeners()
-    // });
   }
 
   get _header () {
