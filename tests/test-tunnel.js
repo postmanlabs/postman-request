@@ -76,7 +76,7 @@ function setListeners (server, type) {
         dest += '->' + match[1]
       }
       event('%s proxy to %s', type, dest)
-      request(req.url, { followRedirect: false }).pipe(res)
+      request(req.url, { followRedirect: false, protocolVersion: 'http1' }).pipe(res)
     }
   })
 
