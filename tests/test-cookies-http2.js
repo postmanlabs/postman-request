@@ -1,6 +1,5 @@
 'use strict'
 
-
 var request = require('../index')
 var tape = require('tape')
 var server = require('./server')
@@ -10,9 +9,7 @@ var validUrl
 var malformedUrl
 var invalidUrl
 
-var s = server.createHttp2Server();
-
-
+var s = server.createHttp2Server()
 
 tape('setup', function (t) {
   s.listen(0, function () {
@@ -23,19 +20,19 @@ tape('setup', function (t) {
     s.on('/valid', (req, res) => {
       res.setHeader('set-cookie', 'foo=bar')
       res.end('okay')
-      res.stream.session.close();
-    });
+      res.stream.session.close()
+    })
     s.on('/malformed', (req, res) => {
       res.setHeader('set-cookie', 'foo')
       res.end('okay')
-      res.stream.session.close();
-    });
+      res.stream.session.close()
+    })
     s.on('/invalid', (req, res) => {
       res.setHeader('set-cookie', 'foo=bar; Domain=foo.com')
       res.end('okay')
-      res.stream.session.close();
-    });
-    
+      res.stream.session.close()
+    })
+
     t.end()
   })
 })

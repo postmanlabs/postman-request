@@ -1,8 +1,8 @@
-import {AutoHttp2Agent} from "./agent";
-import {request} from "./request";
+import { AutoHttp2Agent, globalAgent } from './agent'
+import { request } from './request'
 
-export default  {
-    Agent: AutoHttp2Agent,
-    request: request,
-    globalAgent: new AutoHttp2Agent({})
+export default {
+  Agent: AutoHttp2Agent,
+  request,
+  globalAgent
 }
