@@ -8,7 +8,7 @@ import type * as tls from 'tls';
 
 
 export interface AutoRequestOptions extends Omit<RequestOptions, 'agent'>{
-    agent: AutoHttp2Agent;
+    agent?: AutoHttp2Agent;
 }
 
 
@@ -24,6 +24,7 @@ export class MultiProtocolRequest extends EventEmitter implements http.ClientReq
         this.onHttp2 = this.onHttp2.bind(this);
         this.onHttp = this.onHttp.bind(this);
         this.options = options;
+        this.options.host = options.hostname || options.host || 'localhost';
 
         const agent = options.agent;
         // Request agent to perform alpn and return either an http agent or https agent
