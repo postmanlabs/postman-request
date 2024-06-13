@@ -55,7 +55,6 @@ export class Http2Request extends EventEmitter {
     this.requestHeaders = Object.fromEntries(Object.entries(this.requestHeaders).filter(([key]) => !(options.blacklistHeaders ?? []).includes(key.toLowerCase())))
     
     // Remove blacklisted http/1 headers
-    // Note: we continue to allow sending host header, however it is not required in HTTP/2, infact discouraged in the spec, but some servers require it (see: https://github.com/nodejs/node/issues/29858)
     delete this.requestHeaders.Connection
     delete this.requestHeaders.Host
 
