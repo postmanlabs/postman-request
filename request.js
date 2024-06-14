@@ -1233,7 +1233,7 @@ Request.prototype.onRequestResponse = function (response) {
       if (!self.timings.connect) {
         self.timings.connect = self.timings.lookup
       }
-      if (!self.timings.secureConnect && self.httpModule === https) {
+      if (!self.timings.secureConnect && self.uri.protocol === 'https:') {
         self.timings.secureConnect = self.timings.connect
       }
       if (!self.timings.response) {

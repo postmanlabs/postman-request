@@ -40,10 +40,7 @@ function requestHandler (req, res) {
   res.stream.on('close', () => {
     session.close()
   })
-  // res.on('finish', () => {
-  //   console.log('finish');
-  //     session.close();
-  // });
+
   if (/\bbr\b/i.test(req.headers['accept-encoding'])) {
     res.setHeader('Content-Encoding', 'br')
     if (req.url === '/error') {
@@ -51,7 +48,6 @@ function requestHandler (req, res) {
       // send plaintext instead of br (should cause an error for the client)
       res.end(testContent)
     } else if (req.url === '/chunks') {
-      console.log('chunks')
       res.writeHead(200)
       res.write(Buffer.from(testContentBigBrotli.slice(0, 4096)))
       setTimeout(function () {
@@ -83,7 +79,7 @@ tape('setup', function (t) {
 
   s.on('/foo', requestHandler)
   s.on('/error', requestHandler)
-  s.on('/chunk', requestHandler)
+  s.on('/chunks', requestHandler)
   s.listen(0, function () {
     t.end()
   })
@@ -93,7 +89,6 @@ tape('transparently supports brotli decoding to callbacks', function (t) {
   var options = {
     url: s.url + '/foo',
     brotli: true,
-
     protocolVersion: 'h2',
     strictSSL: false
   }
@@ -242,19 +237,19 @@ tape('transparently supports brotli error to pipes', function (t) {
     })
 })
 
-// tape("pause when streaming from a brotli request object", {todo: true}, function (t) {
-//   var options = {
-//     url: s.url + "/chunks",
-//     brotli: true,
-//     protocolVersion: "h2",
-//     strictSSL: false,
-//   };
-//   request.get(options, function (err, res, body) {
-//     t.equal(err, null);
-//     t.equal(body, testContentBig.toString());
-//     t.end();
-//   });
-// });
+tape("pause when streaming from a brotli request object", function (t) {
+  var options = {
+    url: s.url + "/chunks",
+    brotli: true,
+    protocolVersion: "h2",
+    strictSSL: false,
+  };
+  request.get(options, function (err, res, body) {
+    t.equal(err, null);
+    t.equal(body, testContentBig.toString());
+    t.end();
+  });
+});
 
 tape('pause before streaming from a brotli request object', function (t) {
   var paused = true
