@@ -3,8 +3,8 @@
 var tls = require('tls')
 var http = require('http')
 var https = require('https')
-var http2 = require('./lib/http2').default;
-var autohttp2 = require('./lib/autohttp').default;
+var http2 = require('./lib/http2').default
+var autohttp2 = require('./lib/autohttp').default
 var url = require('url')
 var util = require('util')
 var stream = require('stream')
@@ -595,11 +595,12 @@ Request.prototype.init = function (options) {
 
   // If user defines httpModules, respect if they have different httpModules for different http versions, else use the tls specific http module
   // If the user defines nothing, revert to default modules
-  self.httpModule = httpModules[protocol]?.[self.protocolVersion] || httpModules[protocol] || defaultModules[protocol][self.protocolVersion]
+  self.httpModule = (httpModules[protocol] && httpModules[protocol][self.protocolVersion]) || httpModules[protocol] ||
+    defaultModules[protocol][self.protocolVersion]
 
-  if (!httpModules[protocol]?.[options.protocolVersion] && httpModules[protocol]){
+  if (httpModules[protocol] && !(httpModules[protocol][options.protocolVersion])) {
     // If the user is only specifying https/http modules, revert to http1
-    self.protocolVersion = 'http1';
+    self.protocolVersion = 'http1'
   }
 
   if (!self.httpModule) {
@@ -922,7 +923,7 @@ Request.prototype.start = function () {
     // at the _exact_ same time, they should be close enough to be able to calculate
     // high-resolution, monotonically non-decreasing timestamps relative to startTime.
     var startTime = new Date().getTime()
-    var startTimeNow = performance.now()
+    var startTimeNow = now()
   }
 
   if (self._aborted) {
@@ -1212,13 +1213,13 @@ Request.prototype.onRequestResponse = function (response) {
   var self = this
 
   if (self.timing) {
-    self.timings.response = performance.now() - self.startTimeNow
+    self.timings.response = now() - self.startTimeNow
   }
 
   debug('onRequestResponse', self.uri.href, response.statusCode, response.headers)
   response.on('end', function () {
     if (self.timing) {
-      self.timings.end = performance.now() - self.startTimeNow
+      self.timings.end = now() - self.startTimeNow
       response.timingStart = self.startTime
       response.timingStartTimer = self.startTimeNow
 

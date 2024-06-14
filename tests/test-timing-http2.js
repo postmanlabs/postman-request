@@ -11,7 +11,7 @@ var httpsServer = server.createHttp2Server()
 var redirectMockTime = 10
 
 destroyable(plainServer)
-destroyable(httpsServer);
+destroyable(httpsServer)
 
 tape('setup', function (t) {
   plainServer.listen(0, function () {

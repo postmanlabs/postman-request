@@ -3,7 +3,6 @@
 var request = require('../index')
 var tape = require('tape')
 var server = require('./server')
-const { strict } = require('is-typedarray')
 
 var validUrl
 var malformedUrl

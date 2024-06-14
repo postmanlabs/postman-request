@@ -184,7 +184,7 @@ exports.createHttp2Server = function (opts) {
   }
 
   var s = http2.createSecureServer(options, function (req, resp) {
-    s.emit(req.url, req, resp);
+    s.emit(req.url, req, resp)
   })
   s.on('listening', function () {
     s.port = this.address().port

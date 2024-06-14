@@ -237,19 +237,19 @@ tape('transparently supports brotli error to pipes', function (t) {
     })
 })
 
-tape("pause when streaming from a brotli request object", function (t) {
+tape('pause when streaming from a brotli request object', function (t) {
   var options = {
-    url: s.url + "/chunks",
+    url: s.url + '/chunks',
     brotli: true,
-    protocolVersion: "h2",
-    strictSSL: false,
-  };
+    protocolVersion: 'h2',
+    strictSSL: false
+  }
   request.get(options, function (err, res, body) {
-    t.equal(err, null);
-    t.equal(body, testContentBig.toString());
-    t.end();
-  });
-});
+    t.equal(err, null)
+    t.equal(body, testContentBig.toString())
+    t.end()
+  })
+})
 
 tape('pause before streaming from a brotli request object', function (t) {
   var paused = true
