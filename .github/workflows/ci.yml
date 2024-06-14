@@ -43,8 +43,8 @@ jobs:
         with:
           node-version: 16.x
 
-      - name: Install
-        run: npm install
+      - name: Install with legacy peer deps
+        run: npm install --legacy-peer-deps
 
       - name: Run browser tests
         run: npm run test-browser
