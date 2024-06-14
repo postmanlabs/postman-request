@@ -46,6 +46,11 @@ function initParams (uri, options, callback) {
     params.protocolVersion = 'http1'
   }
 
+  // Disable flow when running in browser
+  if(!tls.connect){
+    params.protocolVersion = 'http1'
+  }
+
   return params
 }
 

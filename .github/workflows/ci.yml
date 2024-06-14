@@ -46,9 +46,6 @@ jobs:
       - name: Install
         run: npm install
 
-      - name: Compile TS
-        run: tsc lib/**/*.ts
-
       - name: Run browser tests
         run: npm run test-browser
 
@@ -71,9 +68,6 @@ jobs:
 
       - name: Install with legacy peer deps
         run: npm install --legacy-peer-deps
-
-      - name: Compile TS
-        run: tsc lib/**/*.ts
 
       - name: Run tests and upload coverage
         run: npm run test-ci

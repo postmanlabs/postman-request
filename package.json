@@ -48,7 +48,6 @@
   },
   "scripts": {
     "test": "npm run lint && npm run test-ci && npm run test-browser",
-    "http2": "tsc lib/autohttp/index.ts lib/http2/index.ts && node test",
     "test-ci": "taper tests/test-*.js",
     "test-cov": "istanbul cover tape tests/test-*.js",
     "test-browser": "node tests/browser/start.js",
@@ -57,7 +56,7 @@
   "devDependencies": {
     "@types/node": "^16.10.0",
     "bluebird": "^3.2.1",
-    "browserify": "^13.0.1",
+    "browserify": "^16.5.2",
     "browserify-istanbul": "^2.0.0",
     "buffer-equal": "^1.0.1",
     "codecov": "^3.0.4",
