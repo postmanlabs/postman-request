@@ -61,12 +61,10 @@ export class Http2Agent extends EventEmitter {
 
       connection.once('connect', () => {
         // start the timeout only when the connection is in ready state, otherwise the connection closes early
-        connection.setTimeout(options?.timeout ?? 30000, () => {
+        connection.setTimeout(options?.timeout ?? 5000, () => {
           // @ts-expect-error
           if (connection.refCount === 0) {
-            connection.close(() => {
-              connection.destroy()
-            })
+            connection.close()
             delete this.connections[name]
           }
         })
@@ -157,5 +155,4 @@ export class Http2Agent extends EventEmitter {
   }
 }
 
-// export const
 export const globalAgent = new Http2Agent({})

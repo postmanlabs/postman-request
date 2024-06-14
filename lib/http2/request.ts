@@ -3,7 +3,8 @@ import * as http from 'http'
 import * as http2 from 'http2'
 import { EventEmitter } from 'events'
 import type * as https from 'https'
-import { type Http2Agent, HTTP2ClientRequestOptions, globalAgent } from './http2Agent'
+import { HTTP2ClientRequestOptions, globalAgent } from './http2Agent'
+import * as tls from "tls";
 
 export interface RequestOptions extends Omit<https.RequestOptions, 'agent' | 'createConnection' | 'protocol'> {
   agent?: {
@@ -22,6 +23,8 @@ export class Http2Request extends EventEmitter {
   stream: http2.ClientHttp2Stream
   private readonly _client: http2.ClientHttp2Session
   requestHeaders: http2.OutgoingHttpHeaders = {};
+  connectionHeaders = ['connection', 'host']
+  socket: tls.TLSSocket
 
   constructor (options: RequestOptions) {
     super()
@@ -51,12 +54,16 @@ export class Http2Request extends EventEmitter {
       [http2.constants.HTTP2_HEADER_AUTHORITY]: newoptions.host,
       ...headers
     }
+    this.socket = this._client.socket as tls.TLSSocket;
 
-    this.requestHeaders = Object.fromEntries(Object.entries(this.requestHeaders).filter(([key]) => !(options.blacklistHeaders ?? []).includes(key.toLowerCase())))
-    
-    // Remove blacklisted http/1 headers
-    delete this.requestHeaders.Connection
-    delete this.requestHeaders.Host
+    this.requestHeaders = Object.fromEntries(
+        Object.entries(this.requestHeaders)
+            .map(([key, value])=>([key.toLowerCase(), value]))
+            // @ts-ignore
+            .filter(([key]) => !(options.blacklistHeaders ?? []).includes(key))
+            // @ts-ignore
+            .filter(([key])=> !this.connectionHeaders.includes(key))
+    )
 
     this.stream = this._client.request(this.requestHeaders)
     this.registerListeners()
@@ -80,20 +87,14 @@ export class Http2Request extends EventEmitter {
     this.stream.on('close', (...args) => {
       this.emit('close', ...args)
     })
-    this.stream.on('socket', () => this.emit('socket', this._client.socket))
+
     this._client.once('error', this.onError)
     this.stream.on('response', (response) => {
       this.emit('response', new ResponseProxy(response, this))
-
-      // HTTP response events returns a readable stream which has data event that consumers listen on to get the response body
-      // With HTTP2 the response object is a header object and the body is streamed via the data event.
-      // To maintain compatibilty with the HTTP API, we need to emit the data after the response event is emitted
-      // And wait for the data listeners to be attached
     })
-    //
+
     this.stream.on('end', () => {
       this._client.off('error', this.onError)
-      this.emit('end')
     })
   }
 
@@ -120,7 +121,7 @@ export class Http2Request extends EventEmitter {
 
   on (eventName: string | symbol, listener: (...args: any[]) => void): this {
     if (eventName === 'socket') {
-      listener(this._client.socket)
+      listener(this.socket)
       return this
     }
 
@@ -164,7 +165,6 @@ class ResponseProxy extends EventEmitter {
   }
 
   registerRequestListeners () {
-    this.req.stream.on('end', () => this.emit('end'))
     this.req.stream.on('error', (e) => this.emit('error', e))
     this.req.stream.on('close', () => {
       this.emit('close')
@@ -182,6 +182,10 @@ class ResponseProxy extends EventEmitter {
       this.req.stream.on('data', (chunk) => {
         this.emit('data', chunk)
       })
+    }
+
+    if(eventName === 'end'){
+      this.req.stream.on('end', listener)
     }
     return this
   }
@@ -209,6 +213,7 @@ class ResponseProxy extends EventEmitter {
   }
 
   pause () {
+    console.log(performance.now(), 'pausing')
     this.req.stream.pause()
   }
 
@@ -222,5 +227,9 @@ class ResponseProxy extends EventEmitter {
 
   setEncoding (encoding: BufferEncoding) {
     this.req.stream.setEncoding(encoding)
+  }
+
+  destroy(){
+    this.req.stream.destroy();
   }
 }

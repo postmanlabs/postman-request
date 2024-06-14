@@ -45,21 +45,6 @@ tape('setup', function (t) {
   })
 })
 
-tape('HTTP: redirected request is timed with rollup', function (t) {
-  var options = {time: true}
-  var r = request('http://localhost:' + plainServer.port + '/redir', options, function (err, res, body) {
-    t.equal(err, null)
-    t.equal(typeof res.elapsedTime, 'number')
-    t.equal(typeof res.responseStartTime, 'number')
-    t.equal((res.elapsedTime > 0), true)
-    t.equal((res.responseStartTime > 0), true)
-    t.equal((res.elapsedTime > redirectMockTime), true)
-    t.equal((res.responseStartTime > r.startTime), true)
-    t.end()
-  })
-})
-
-
 tape('HTTPS: non-redirected request is timed', function (t) {
   var options = {time: true, strictSSL: false, protocolVersion: 'h2'}
 
@@ -115,7 +100,7 @@ tape('HTTPS: non-redirected request is timed', function (t) {
 })
 
 tape('HTTPS: redirected request is timed with rollup', function (t) {
-  var options = {time: true, strictSSL: false}
+  var options = {time: true, strictSSL: false, protocolVersion: 'h2'}
   var r = request('https://localhost:' + httpsServer.port + '/redir', options, function (err, res, body) {
     t.equal(err, null)
     t.equal(typeof res.elapsedTime, 'number')

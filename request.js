@@ -922,7 +922,7 @@ Request.prototype.start = function () {
     // at the _exact_ same time, they should be close enough to be able to calculate
     // high-resolution, monotonically non-decreasing timestamps relative to startTime.
     var startTime = new Date().getTime()
-    var startTimeNow = now()
+    var startTimeNow = performance.now()
   }
 
   if (self._aborted) {
@@ -1212,13 +1212,13 @@ Request.prototype.onRequestResponse = function (response) {
   var self = this
 
   if (self.timing) {
-    self.timings.response = now() - self.startTimeNow
+    self.timings.response = performance.now() - self.startTimeNow
   }
 
   debug('onRequestResponse', self.uri.href, response.statusCode, response.headers)
   response.on('end', function () {
     if (self.timing) {
-      self.timings.end = now() - self.startTimeNow
+      self.timings.end = performance.now() - self.startTimeNow
       response.timingStart = self.startTime
       response.timingStartTimer = self.startTimeNow
 
@@ -1269,6 +1269,10 @@ Request.prototype.onRequestResponse = function (response) {
     }
 
     debug('response end', self.uri.href, response.statusCode, response.headers)
+
+    // Only consumed by redirects for now, in order to wait for current request to finish processing and then move onto
+    // the next one
+    self.emit('finish')
   })
 
   if (self._aborted) {
