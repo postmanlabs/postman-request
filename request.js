@@ -650,8 +650,8 @@ Request.prototype.init = function (options) {
     self.agent = self.agent || self.getNewAgent()
   }
 
-  self._redirectPromise = new Promise((res)=>{
-    self._redirectResolve = res;
+  self._redirectPromise = new Promise((resolve) => {
+    self._redirectResolve = resolve
   })
 
   self.on('pipe', function (src) {
@@ -1965,7 +1965,7 @@ Request.prototype.end = function (chunk) {
     const request = self._reqResInfo.request
     Promise.resolve(self.req._header).then(function (header) {
       request.headers = parseRequestHeaders(header)
-    });
+    })
   }
 }
 Request.prototype.pause = function () {
