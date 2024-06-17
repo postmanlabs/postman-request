@@ -141,9 +141,8 @@ function parseRequestHeaders (headerString) {
   // first element of accumulator is not a header
   // last two elements are empty strings
   for (var i = 1; i < arr.length - 2; i++) {
-    // header name cannot have a ':' but header value allows it
-    // therefore we split on the index of the first ':'
-    var splitIndex = arr[i].indexOf(':')
+    // HTTP/2 specific headers beging with :, so we find the index of the first colon skipping the first character
+    var splitIndex = arr[i].indexOf(':', 1)
 
     acc.push({
       key: arr[i].slice(0, splitIndex),
@@ -1959,7 +1958,11 @@ Request.prototype.end = function (chunk) {
   if (self.req) {
     self.req.end()
 
-    self.req._header && (self._reqResInfo.request.headers = parseRequestHeaders(self.req._header))
+    // Reference to request, so if _reqResInfo is updated (in case of redirects), we still can update the headers
+    const request = self._reqResInfo.request
+    Promise.resolve(self.req._header).then(function (header) {
+      request.headers = parseRequestHeaders(header)
+    });
   }
 }
 Request.prototype.pause = function () {
