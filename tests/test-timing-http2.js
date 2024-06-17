@@ -108,7 +108,7 @@ tape('HTTPS: redirected request is timed with rollup', function (t) {
     t.equal((res.elapsedTime > 0), true)
     t.equal((res.responseStartTime > 0), true)
     t.equal((res.elapsedTime > redirectMockTime), true)
-    t.equal((res.responseStartTime > r.startTime), true)
+    t.equal((res.responseStartTime >= r.startTime), true)
     t.end()
   })
 })

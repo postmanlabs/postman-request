@@ -594,8 +594,7 @@ Request.prototype.init = function (options) {
 
   // If user defines httpModules, respect if they have different httpModules for different http versions, else use the tls specific http module
   // If the user defines nothing, revert to default modules
-  self.httpModule = (httpModules[protocol] && httpModules[protocol][self.protocolVersion]) || httpModules[protocol] ||
-    defaultModules[protocol][self.protocolVersion]
+  self.httpModule = (httpModules[protocol] && httpModules[protocol][self.protocolVersion]) || httpModules[protocol] || (defaultModules[protocol] && defaultModules[protocol][self.protocolVersion])
 
   if (httpModules[protocol] && !(httpModules[protocol][options.protocolVersion])) {
     // If the user is only specifying https/http modules, revert to http1
@@ -650,6 +649,10 @@ Request.prototype.init = function (options) {
   } else {
     self.agent = self.agent || self.getNewAgent()
   }
+
+  self._redirectPromise = new Promise((res)=>{
+    self._redirectResolve = res;
+  })
 
   self.on('pipe', function (src) {
     if (self.ntick && self._started) {
@@ -1272,7 +1275,7 @@ Request.prototype.onRequestResponse = function (response) {
 
     // Only consumed by redirects for now, in order to wait for current request to finish processing and then move onto
     // the next one
-    self.emit('finish')
+    self._redirectResolve()
   })
 
   if (self._aborted) {
