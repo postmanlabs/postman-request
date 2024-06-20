@@ -4,6 +4,7 @@ var fs = require('fs')
 var http = require('http')
 var path = require('path')
 var https = require('https')
+var http2 = require('http2')
 var stream = require('stream')
 var assert = require('assert')
 
@@ -23,15 +24,19 @@ exports.createServer = function () {
 exports.createEchoServer = function () {
   var s = http.createServer(function (req, resp) {
     var b = ''
-    req.on('data', function (chunk) { b += chunk })
+    req.on('data', function (chunk) {
+      b += chunk
+    })
     req.on('end', function () {
-      resp.writeHead(200, {'content-type': 'application/json'})
-      resp.write(JSON.stringify({
-        url: req.url,
-        method: req.method,
-        headers: req.headers,
-        body: b
-      }))
+      resp.writeHead(200, { 'content-type': 'application/json' })
+      resp.write(
+        JSON.stringify({
+          url: req.url,
+          method: req.method,
+          headers: req.headers,
+          body: b
+        })
+      )
       resp.end()
     })
   })
@@ -46,7 +51,10 @@ exports.createEchoServer = function () {
 
 exports.createSSLServer = function (opts) {
   var i
-  var options = { 'key': path.join(__dirname, 'ssl', 'test.key'), 'cert': path.join(__dirname, 'ssl', 'test.crt') }
+  var options = {
+    key: path.join(__dirname, 'ssl', 'test.key'),
+    cert: path.join(__dirname, 'ssl', 'test.crt')
+  }
   if (opts) {
     for (i in opts) {
       options[i] = opts[i]
@@ -84,9 +92,14 @@ exports.createPostStream = function (text) {
 exports.createPostValidator = function (text, reqContentType) {
   var l = function (req, resp) {
     var r = ''
-    req.on('data', function (chunk) { r += chunk })
+    req.on('data', function (chunk) {
+      r += chunk
+    })
     req.on('end', function () {
-      if (req.headers['content-type'] && req.headers['content-type'].indexOf('boundary=') >= 0) {
+      if (
+        req.headers['content-type'] &&
+        req.headers['content-type'].indexOf('boundary=') >= 0
+      ) {
         var boundary = req.headers['content-type'].split('boundary=')[1]
         text = text.replace(/__BOUNDARY__/g, boundary)
       }
@@ -95,9 +108,11 @@ exports.createPostValidator = function (text, reqContentType) {
         assert.ok(req.headers['content-type'])
         assert.ok(~req.headers['content-type'].indexOf(reqContentType))
       }
-      resp.writeHead(200, {'content-type': 'text/plain'})
+      resp.writeHead(200, { 'content-type': 'text/plain' })
       resp.write(r)
       resp.end()
+      // Close the session if it's a HTTP/2 request. This is not representative of a true http/2 server that might keep the session open. But we need this to close the server in the tests.
+      req || req.stream || req.stream.session || req.stream.session.close || req.stream.session.close()
     })
   }
   return l
@@ -105,7 +120,9 @@ exports.createPostValidator = function (text, reqContentType) {
 exports.createPostJSONValidator = function (value, reqContentType) {
   var l = function (req, resp) {
     var r = ''
-    req.on('data', function (chunk) { r += chunk })
+    req.on('data', function (chunk) {
+      r += chunk
+    })
     req.on('end', function () {
       var parsedValue = JSON.parse(r)
       assert.deepEqual(parsedValue, value)
@@ -113,9 +130,11 @@ exports.createPostJSONValidator = function (value, reqContentType) {
         assert.ok(req.headers['content-type'])
         assert.ok(~req.headers['content-type'].indexOf(reqContentType))
       }
-      resp.writeHead(200, {'content-type': 'application/json'})
+      resp.writeHead(200, { 'content-type': 'application/json' })
       resp.write(r)
       resp.end()
+      // Close the session if it's a HTTP/2 request. This is not representative of a true http/2 server that might keep the session open. But we need this to close the server in the tests.
+      req || req.stream || req.stream.session || req.stream.session.close || req.stream.session.close()
     })
   }
   return l
@@ -123,20 +142,56 @@ exports.createPostJSONValidator = function (value, reqContentType) {
 exports.createGetResponse = function (text, contentType) {
   var l = function (req, resp) {
     contentType = contentType || 'text/plain'
-    resp.writeHead(200, {'content-type': contentType})
+    resp.writeHead(200, { 'content-type': contentType })
     resp.write(text)
     resp.end()
+
+    // Close the session if it's a HTTP/2 request. This is not representative of a true http/2 server that might keep the session open. But we need this to close the server in the tests.
+    req || req.stream || req.stream.session || req.stream.session.close || req.stream.session.close()
   }
   return l
 }
 exports.createChunkResponse = function (chunks, contentType) {
   var l = function (req, resp) {
     contentType = contentType || 'text/plain'
-    resp.writeHead(200, {'content-type': contentType})
+    resp.writeHead(200, { 'content-type': contentType })
     chunks.forEach(function (chunk) {
       resp.write(chunk)
     })
     resp.end()
+    // Close the session if it's a HTTP/2 request. This is not representative of a true http/2 server that might keep the session open. But we need this to close the server in the tests.
+    req || req.stream || req.stream.session || req.stream.session.close || req.stream.session.close()
   }
   return l
+}
+
+exports.createHttp2Server = function (opts) {
+  var i
+  var options = {
+    key: path.join(__dirname, 'ssl', 'test.key'),
+    cert: path.join(__dirname, 'ssl', 'test.crt')
+  }
+  if (opts) {
+    for (i in opts) {
+      options[i] = opts[i]
+    }
+  }
+
+  for (i in options) {
+    if (i !== 'requestCert' && i !== 'rejectUnauthorized' && i !== 'ciphers') {
+      options[i] = fs.readFileSync(options[i])
+    }
+  }
+
+  var s = http2.createSecureServer(options, function (req, resp) {
+    s.emit(req.url, req, resp)
+  })
+  s.on('listening', function () {
+    s.port = this.address().port
+    s.url = 'https://localhost:' + s.port
+  })
+
+  s.port = 0
+  s.protocol = 'https'
+  return s
 }

@@ -3,6 +3,8 @@
 var tls = require('tls')
 var http = require('http')
 var https = require('https')
+var http2 = require('./lib/http2')
+var autohttp2 = require('./lib/autohttp')
 var url = require('url')
 var util = require('util')
 var stream = require('stream')
@@ -139,9 +141,8 @@ function parseRequestHeaders (headerString) {
   // first element of accumulator is not a header
   // last two elements are empty strings
   for (var i = 1; i < arr.length - 2; i++) {
-    // header name cannot have a ':' but header value allows it
-    // therefore we split on the index of the first ':'
-    var splitIndex = arr[i].indexOf(':')
+    // HTTP/2 specific headers beging with :, so we find the index of the first colon skipping the first character
+    var splitIndex = arr[i].indexOf(':', 1)
 
     acc.push({
       key: arr[i].slice(0, splitIndex),
@@ -588,10 +589,17 @@ Request.prototype.init = function (options) {
   }
 
   var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
-  var defaultModules = {'http:': http, 'https:': https}
+  var defaultModules = {'http:': { http2: http, http1: http, auto: http }, 'https:': { http1: https, http2: http2, auto: autohttp2 }}
   var httpModules = self.httpModules || {}
 
-  self.httpModule = httpModules[protocol] || defaultModules[protocol]
+  // If user defines httpModules, respect if they have different httpModules for different http versions, else use the tls specific http module
+  // If the user defines nothing, revert to default modules
+  self.httpModule = (httpModules[protocol] && httpModules[protocol][self.protocolVersion]) || httpModules[protocol] || (defaultModules[protocol] && defaultModules[protocol][self.protocolVersion])
+
+  if (httpModules[protocol] && !(httpModules[protocol][options.protocolVersion])) {
+    // If the user is only specifying https/http modules, revert to http1
+    self.protocolVersion = 'http1'
+  }
 
   if (!self.httpModule) {
     return self.emit('error', new Error('Invalid protocol: ' + protocol))
@@ -646,6 +654,10 @@ Request.prototype.init = function (options) {
       return self.emit('error', error)
     }
   }
+
+  self._redirectPromise = new Promise((resolve) => {
+    self._redirectResolve = resolve
+  })
 
   self.on('pipe', function (src) {
     if (self.ntick && self._started) {
@@ -897,7 +909,7 @@ Request.prototype.getNewAgent = function () {
   }
 
   // we're using a stored agent.  Make sure it's protocol-specific
-  poolKey = self.uri.protocol + poolKey
+  poolKey = self.protocolVersion + ':' + self.uri.protocol + poolKey
 
   // generate a new agent for this setting if none yet exists
   if (!self.pool[poolKey]) {
@@ -1234,7 +1246,7 @@ Request.prototype.onRequestResponse = function (response) {
       if (!self.timings.connect) {
         self.timings.connect = self.timings.lookup
       }
-      if (!self.timings.secureConnect && self.httpModule === https) {
+      if (!self.timings.secureConnect && self.uri.protocol === 'https:') {
         self.timings.secureConnect = self.timings.connect
       }
       if (!self.timings.response) {
@@ -1270,6 +1282,10 @@ Request.prototype.onRequestResponse = function (response) {
     }
 
     debug('response end', self.uri.href, response.statusCode, response.headers)
+
+    // Only consumed by redirects for now, in order to wait for current request to finish processing and then move onto
+    // the next one
+    self._redirectResolve()
   })
 
   if (self._aborted) {
@@ -1283,6 +1299,8 @@ Request.prototype.onRequestResponse = function (response) {
     headers: parseResponseHeaders(response.rawHeaders),
     httpVersion: response.httpVersion
   }
+
+  self._reqResInfo.request.httpVersion = response.httpVersion
 
   if (self.timing) {
     self._reqResInfo.timingStart = self.startTime
@@ -1953,7 +1971,11 @@ Request.prototype.end = function (chunk) {
   if (self.req) {
     self.req.end()
 
-    self.req._header && (self._reqResInfo.request.headers = parseRequestHeaders(self.req._header))
+    // Reference to request, so if _reqResInfo is updated (in case of redirects), we still can update the headers
+    const request = self._reqResInfo.request
+    Promise.resolve(self.req._header).then(function (header) {
+      request.headers = parseRequestHeaders(header)
+    })
   }
 }
 Request.prototype.pause = function () {

@@ -14,7 +14,7 @@
   },
   "license": "Apache-2.0",
   "engines": {
-    "node": ">= 6"
+    "node": ">= 16"
   },
   "main": "index.js",
   "files": [
@@ -54,8 +54,9 @@
     "lint": "standard"
   },
   "devDependencies": {
+    "@types/node": "^16.10.0",
     "bluebird": "^3.2.1",
-    "browserify": "^13.0.1",
+    "browserify": "^16.5.2",
     "browserify-istanbul": "^2.0.0",
     "buffer-equal": "^1.0.1",
     "codecov": "^3.0.4",
