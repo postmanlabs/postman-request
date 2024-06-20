@@ -27,9 +27,14 @@ var tape = require('tape')
 var s = server.createHttp2Server()
 destroyable(s)
 
+var streams = []
 // Request that waits for 200ms
 s.on('/timeout', function (req, res) {
+  streams.push(req.stream)
   setTimeout(function () {
+    if (res.stream.closed) {
+      return
+    }
     res.writeHead(200, {'content-type': 'text/plain'})
     res.write('waited')
     res.end()
@@ -156,6 +161,18 @@ tape('float timeout', function (t) { // should be rounded by setTimeout anyway
 })
 
 tape('cleanup', function (t) {
+  const sessions = []
+
+  streams.forEach((stream) => {
+    sessions.push(stream.session)
+    stream.destroy()
+  })
+
+  sessions.forEach((session) => {
+    if (!session) { return }
+    session.close()
+  })
+
   s.close(function () {
     t.end()
   })
