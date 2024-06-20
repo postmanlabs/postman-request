@@ -89,7 +89,7 @@ tape('transparently supports brotli decoding to callbacks', function (t) {
   var options = {
     url: s.url + '/foo',
     brotli: true,
-    protocolVersion: 'h2',
+    protocolVersion: 'http2',
     strictSSL: false
   }
   request.get(options, function (err, res, body) {
@@ -104,7 +104,7 @@ tape('transparently supports brotli decoding to pipes', function (t) {
   var options = {
     url: s.url + '/foo',
     brotli: true,
-    protocolVersion: 'h2',
+    protocolVersion: 'http2',
     strictSSL: false
   }
   var chunks = []
@@ -130,7 +130,7 @@ tape(
       url: s.url + '/foo',
       headers: headers,
       brotli: true,
-      protocolVersion: 'h2',
+      protocolVersion: 'http2',
       strictSSL: false
     }
     request.get(options, function (err, res, body) {
@@ -147,7 +147,7 @@ tape('does not decode user-requested encoding by default', function (t) {
   var options = {
     url: s.url + '/foo',
     headers: headers,
-    protocolVersion: 'h2',
+    protocolVersion: 'http2',
     strictSSL: false
   }
   request.get(options, function (err, res, body) {
@@ -164,7 +164,7 @@ tape('does not decode brotli encoding when "gzip" option is set', function (t) {
     url: s.url + '/foo',
     headers: headers,
     gzip: true,
-    protocolVersion: 'h2',
+    protocolVersion: 'http2',
     strictSSL: false
   }
   request.get(options, function (err, res, body) {
@@ -182,7 +182,7 @@ tape('supports character encoding with brotli encoding', function (t) {
     headers: headers,
     brotli: true,
     encoding: 'utf8',
-    protocolVersion: 'h2',
+    protocolVersion: 'http2',
     strictSSL: false
   }
   var strings = []
@@ -205,7 +205,7 @@ tape('transparently supports brotli error to callbacks', function (t) {
   var options = {
     url: s.url + '/error',
     brotli: true,
-    protocolVersion: 'h2',
+    protocolVersion: 'http2',
     strictSSL: false
   }
   request.get(options, function (err, res, body) {
@@ -220,7 +220,7 @@ tape('transparently supports brotli error to pipes', function (t) {
   var options = {
     url: s.url + '/error',
     brotli: true,
-    protocolVersion: 'h2',
+    protocolVersion: 'http2',
     strictSSL: false
   }
   request
@@ -241,7 +241,7 @@ tape('pause when streaming from a brotli request object', function (t) {
   var options = {
     url: s.url + '/chunks',
     brotli: true,
-    protocolVersion: 'h2',
+    protocolVersion: 'http2',
     strictSSL: false
   }
   request.get(options, function (err, res, body) {
@@ -256,7 +256,7 @@ tape('pause before streaming from a brotli request object', function (t) {
   var options = {
     url: s.url + '/foo',
     brotli: true,
-    protocolVersion: 'h2',
+    protocolVersion: 'http2',
     strictSSL: false
   }
   var r = request.get(options)
@@ -279,7 +279,7 @@ tape('do not try to pipe HEAD request responses', function (t) {
     method: 'HEAD',
     url: s.url + '/foo',
     brotli: true,
-    protocolVersion: 'h2',
+    protocolVersion: 'http2',
     strictSSL: false
   }
 
@@ -294,7 +294,7 @@ tape('do not try to pipe responses with no body', function (t) {
   var options = {
     url: s.url + '/foo',
     brotli: true,
-    protocolVersion: 'h2',
+    protocolVersion: 'http2',
     strictSSL: false
   }
 

@@ -56,7 +56,7 @@ tape('after server sends a cookie', function (t) {
     method: 'GET',
     url: validUrl,
     jar: jar1,
-    protocolVersion: 'h2',
+    protocolVersion: 'http2',
     strictSSL: false
   },
     function (error, response, body) {
@@ -78,7 +78,7 @@ tape('after server sends a malformed cookie', function (t) {
     method: 'GET',
     url: malformedUrl,
     jar: jar,
-    protocolVersion: 'h2',
+    protocolVersion: 'http2',
     strictSSL: false
   },
     function (error, response, body) {
@@ -100,7 +100,7 @@ tape('after server sends a cookie for a different domain', function (t) {
     method: 'GET',
     url: invalidUrl,
     jar: jar2,
-    protocolVersion: 'h2',
+    protocolVersion: 'http2',
     strictSSL: false
   },
     function (error, response, body) {

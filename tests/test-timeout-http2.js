@@ -47,7 +47,7 @@ tape('should timeout', function (t) {
     url: s.url + '/timeout',
     timeout: 100,
     strictSSL: false,
-    protocolVersion: 'h2'
+    protocolVersion: 'http2'
   }
 
   request(shouldTimeout, function (err, res, body) {
@@ -61,7 +61,7 @@ tape('should set connect to false', function (t) {
     url: s.url + '/timeout',
     timeout: 100,
     strictSSL: false,
-    protocolVersion: 'h2'
+    protocolVersion: 'http2'
   }
 
   request(shouldTimeout, function (err, res, body) {
@@ -78,7 +78,7 @@ tape('should timeout with events', function (t) {
     url: s.url + '/timeout',
     timeout: 100,
     strictSSL: false,
-    protocolVersion: 'h2'
+    protocolVersion: 'http2'
   }
 
   var eventsEmitted = 0
@@ -95,7 +95,7 @@ tape('should not timeout', function (t) {
     url: s.url + '/timeout',
     timeout: 1200,
     strictSSL: false,
-    protocolVersion: 'h2'
+    protocolVersion: 'http2'
   }
 
   var socket
@@ -113,7 +113,7 @@ tape('no timeout', function (t) {
   var noTimeout = {
     url: s.url + '/timeout',
     strictSSL: false,
-    protocolVersion: 'h2'
+    protocolVersion: 'http2'
   }
 
   request(noTimeout, function (err, res, body) {
@@ -128,7 +128,7 @@ tape('negative timeout', function (t) { // should be treated a zero or the minim
     url: s.url + '/timeout',
     timeout: -1000,
     strictSSL: false,
-    protocolVersion: 'h2'
+    protocolVersion: 'http2'
   }
 
   request(negativeTimeout, function (err, res, body) {
@@ -146,7 +146,7 @@ tape('float timeout', function (t) { // should be rounded by setTimeout anyway
     url: s.url + '/timeout',
     timeout: 100.76,
     strictSSL: false,
-    protocolVersion: 'h2'
+    protocolVersion: 'http2'
   }
 
   request(floatTimeout, function (err, res, body) {

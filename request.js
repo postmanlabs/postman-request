@@ -589,7 +589,7 @@ Request.prototype.init = function (options) {
   }
 
   var protocol = self.proxy && !self.tunnel ? self.proxy.protocol : self.uri.protocol
-  var defaultModules = {'http:': { h2: http, http1: http, auto: http }, 'https:': { http1: https, h2: http2, auto: autohttp2 }}
+  var defaultModules = {'http:': { http2: http, http1: http, auto: http }, 'https:': { http1: https, http2: http2, auto: autohttp2 }}
   var httpModules = self.httpModules || {}
 
   // If user defines httpModules, respect if they have different httpModules for different http versions, else use the tls specific http module

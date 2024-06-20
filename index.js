@@ -37,7 +37,7 @@ function initParams (uri, options, callback) {
   params.callback = callback || params.callback
 
   // Disable http/2 when using custom agents that don't handle different versions separately
-  if (params.agents && !(params.agents.http1 || params.agents.auto || params.agents.h2)) {
+  if (params.agents && !(params.agents.http1 || params.agents.auto || params.agents.http2)) {
     params.protocolVersion = 'http1'
   }
 

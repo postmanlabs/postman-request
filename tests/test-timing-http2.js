@@ -46,7 +46,7 @@ tape('setup', function (t) {
 })
 
 tape('HTTPS: non-redirected request is timed', function (t) {
-  var options = {time: true, strictSSL: false, protocolVersion: 'h2'}
+  var options = {time: true, strictSSL: false, protocolVersion: 'http2'}
 
   var start = new Date().getTime()
   var r = request('https://localhost:' + httpsServer.port + '/', options, function (err, res, body) {
@@ -100,7 +100,7 @@ tape('HTTPS: non-redirected request is timed', function (t) {
 })
 
 tape('HTTPS: redirected request is timed with rollup', function (t) {
-  var options = {time: true, strictSSL: false, protocolVersion: 'h2'}
+  var options = {time: true, strictSSL: false, protocolVersion: 'http2'}
   var r = request('https://localhost:' + httpsServer.port + '/redir', options, function (err, res, body) {
     t.equal(err, null)
     t.equal(typeof res.elapsedTime, 'number')

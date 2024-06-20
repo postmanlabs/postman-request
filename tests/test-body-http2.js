@@ -19,7 +19,7 @@ function addTest (name, data) {
     s.on('/' + name, data.resp)
     data.uri = s.url + '/' + name
     request(
-      { ...data, protocolVersion: 'h2', strictSSL: false },
+      { ...data, protocolVersion: 'http2', strictSSL: false },
       function (err, resp, body) {
         t.equal(err, null)
         if (data.expectBody && Buffer.isBuffer(data.expectBody)) {
@@ -163,7 +163,7 @@ tape('testBinaryFile', function (t) {
       uri: 'https://localhost:' + s.port,
       method: 'POST',
       strictSSL: false,
-      protocolVersion: 'h2',
+      protocolVersion: 'http2',
       body: fs.createReadStream(path.join(__dirname, 'raw.file'))
     },
     function (err, res, body) {
@@ -190,7 +190,7 @@ tape('typed array', function (t) {
       body: data,
       encoding: null,
       strictSSL: false,
-      protocolVersion: 'h2'
+      protocolVersion: 'http2'
     },
     function (err, res, body) {
       t.error(err)
