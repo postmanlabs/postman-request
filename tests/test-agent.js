@@ -23,16 +23,16 @@ function httpAgent (t, options, req) {
   var r = (req || request)(options, function (_err, res, body) {
     t.ok(r.agent instanceof http.Agent, 'is http.Agent')
     t.equal(r.agent.options.keepAlive, true, 'is keepAlive')
-    t.equal(Object.keys(r.agent.sockets).length, 1, '1 socket name')
-
+    t.equal(Object.keys(r.agent.freeSockets).length, 1, '1 socket name')
     var name = (typeof r.agent.getName === 'function')
       ? r.agent.getName({port: s.port})
       : 'localhost:' + s.port // node 0.10-
-    t.equal(r.agent.sockets[name].length, 1, '1 open socket')
 
-    var socket = r.agent.sockets[name][0]
+    t.equal(r.agent.freeSockets[name].length, 1, '1 open socket')
+
+    var socket = r.agent.freeSockets[name][0]
     socket.on('close', function () {
-      t.equal(Object.keys(r.agent.sockets).length, 0, '0 open sockets')
+      t.equal(Object.keys(r.agent.freeSockets).length, 0, '0 open sockets')
       t.end()
     })
     socket.end()
