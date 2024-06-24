@@ -41,6 +41,7 @@ var toBase64 = helpers.toBase64
 var defer = helpers.defer
 var copy = helpers.copy
 var version = helpers.version
+var SizeTrackerStream = helpers.SizeTrackerStream
 var globalCookieJar = cookies.jar()
 
 var globalPool = {}
@@ -1347,6 +1348,8 @@ Request.prototype.onRequestResponse = function (response) {
     }
 
     var responseContent
+    var downloadSizeTracker = new SizeTrackerStream()
+
     if ((self.gzip || self.brotli) && !noBody(response.statusCode)) {
       var contentEncoding = response.headers['content-encoding'] || 'identity'
       contentEncoding = contentEncoding.trim().toLowerCase()
@@ -1362,23 +1365,23 @@ Request.prototype.onRequestResponse = function (response) {
 
       if (self.gzip && contentEncoding === 'gzip') {
         responseContent = zlib.createGunzip(zlibOptions)
-        response.pipe(responseContent)
+        response.pipe(downloadSizeTracker).pipe(responseContent)
       } else if (self.gzip && contentEncoding === 'deflate') {
         responseContent = inflate.createInflate(zlibOptions)
-        response.pipe(responseContent)
+        response.pipe(downloadSizeTracker).pipe(responseContent)
       } else if (self.brotli && contentEncoding === 'br') {
         responseContent = brotli.createBrotliDecompress()
-        response.pipe(responseContent)
+        response.pipe(downloadSizeTracker).pipe(responseContent)
       } else {
         // Since previous versions didn't check for Content-Encoding header,
         // ignore any invalid values to preserve backwards-compatibility
         if (contentEncoding !== 'identity') {
           debug('ignoring unrecognized Content-Encoding ' + contentEncoding)
         }
-        responseContent = response
+        responseContent = response.pipe(downloadSizeTracker)
       }
     } else {
-      responseContent = response
+      responseContent = response.pipe(downloadSizeTracker)
     }
 
     if (self.encoding) {
@@ -1408,9 +1411,9 @@ Request.prototype.onRequestResponse = function (response) {
     // results in some other characters.
     // For example: If the server intentionally responds with `ð\x9F\x98\x8A` as status message
     // but if the statusMessageEncoding option is set to `utf8`, then it would get converted to '😊'.
-    var statusMessage = String(responseContent.statusMessage)
+    var statusMessage = String(response.statusMessage)
     if (self.statusMessageEncoding && /[^\w\s-']/.test(statusMessage)) {
-      responseContent.statusMessage = Buffer.from(statusMessage, 'latin1').toString(self.statusMessageEncoding)
+      response.statusMessage = Buffer.from(statusMessage, 'latin1').toString(self.statusMessageEncoding)
     }
 
     if (self._paused) {
@@ -1455,6 +1458,7 @@ Request.prototype.onRequestResponse = function (response) {
       self.emit('data', chunk)
     })
     responseContent.once('end', function (chunk) {
+      self._reqResInfo.response.downloadedBytes = downloadSizeTracker.size
       self.emit('end', chunk)
     })
     responseContent.on('error', function (error) {
