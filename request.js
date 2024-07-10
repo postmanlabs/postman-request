@@ -647,7 +647,12 @@ Request.prototype.init = function (options) {
   if (self.pool === false) {
     self.agent = false
   } else {
-    self.agent = self.agent || self.getNewAgent()
+    try {
+      self.agent = self.agent || self.getNewAgent()
+    } catch (error) {
+      // tls.createSecureContext() throws on bad options
+      return self.emit('error', error)
+    }
   }
 
   self._redirectPromise = new Promise((resolve) => {
@@ -836,11 +841,16 @@ Request.prototype.getNewAgent = function () {
     }
 
     // only add when NodeExtraCACerts is enabled
-    if (tls.__createSecureContext && options.extraCA) {
+    if (options.extraCA) {
       if (poolKey) {
         poolKey += ':'
       }
       poolKey += options.extraCA
+
+      // Create a new secure context to add the extra CA
+      var secureContext = tls.createSecureContext(options)
+      secureContext.context.addCACert(options.extraCA)
+      options.secureContext = secureContext
     }
 
     if (typeof options.rejectUnauthorized !== 'undefined') {

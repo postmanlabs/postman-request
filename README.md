@@ -809,23 +809,16 @@ request({url: 'https://www.google.com', verbose: true}, function (error, respons
 
 ### Extending root CAs
 
-When this feature is enabled, the root CAs can be extended using the `extraCA` option. The file should consist of one or more trusted certificates in PEM format.
+The root CAs can be extended using the `extraCA` option. The file should consist of one or more trusted certificates in PEM format.
 
 This is similar to [NODE_EXTRA_CA_CERTS](https://nodejs.org/api/cli.html#cli_node_extra_ca_certs_file). But, if `options.ca` is specified, those will be extended as well.
 
 ```js
-// enable extending CAs
-request.enableNodeExtraCACerts();
-
 // request with extra CA certs
 request.get({
     url: 'https://api.some-server.com/',
     extraCA: fs.readFileSync('Extra CA Certificates .pem')
 });
-
-// disable this feature
-request.disableNodeExtraCACerts()
-
 ```
 
 [back to top](#table-of-contents)

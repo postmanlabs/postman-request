@@ -494,7 +494,6 @@ tape('setup', function (t) {
     ss.listen(0, function () {
       ss2.listen(0, 'localhost', function () {
         ss3.listen(0, 'localhost', function () {
-          request.enableNodeExtraCACerts()
           addTests()
           tape('cleanup', function (t) {
             s.destroy(function () {
@@ -502,7 +501,6 @@ tape('setup', function (t) {
                 ss2.destroy(function () {
                   ss3.destroy(function () {
                     t.end()
-                    request.disableNodeExtraCACerts()
                   })
                 })
               })

@@ -106,10 +106,7 @@ tape('pfx + passphrase(invalid)', function (t) {
   })
 })
 
-tape('extraCA(NodeExtraCACerts: enabled)', function (t) {
-  // enable extraCA support
-  request.enableNodeExtraCACerts()
-
+tape('extraCA', function (t) {
   request({
     url: sslServer.url,
     extraCA: ca,
@@ -118,27 +115,11 @@ tape('extraCA(NodeExtraCACerts: enabled)', function (t) {
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(body.toString(), 'authorized')
-    request.disableNodeExtraCACerts() // RESET
     t.end()
   })
 })
 
-tape('extraCA(NodeExtraCACerts: disabled)', function (t) {
-  request({
-    url: sslServer.url,
-    extraCA: ca,
-    key: clientKey,
-    cert: clientCert
-  }, function (err, res, body) {
-    t.ok(err)
-    t.end()
-  })
-})
-
-tape('ca + extraCA(NodeExtraCACerts: enabled)', function (t) {
-  // enable extraCA support
-  request.enableNodeExtraCACerts()
-
+tape('ca + extraCA', function (t) {
   request({
     url: sslServer.url,
     ca: ca,
@@ -148,7 +129,6 @@ tape('ca + extraCA(NodeExtraCACerts: enabled)', function (t) {
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(body.toString(), 'authorized')
-    request.disableNodeExtraCACerts() // RESET
     t.end()
   })
 })
