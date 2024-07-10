@@ -655,10 +655,6 @@ Request.prototype.init = function (options) {
     }
   }
 
-  self._redirectPromise = new Promise((resolve) => {
-    self._redirectResolve = resolve
-  })
-
   self.on('pipe', function (src) {
     if (self.ntick && self._started) {
       self.emit('error', new Error('You cannot pipe to this stream after the outbound request has started.'))
@@ -1283,9 +1279,6 @@ Request.prototype.onRequestResponse = function (response) {
 
     debug('response end', self.uri.href, response.statusCode, response.headers)
 
-    // Only consumed by redirects for now, in order to wait for current request to finish processing and then move onto
-    // the next one
-    self._redirectResolve()
   })
 
   if (self._aborted) {
@@ -1313,7 +1306,7 @@ Request.prototype.onRequestResponse = function (response) {
   response.toJSON = responseToJSON
 
   // XXX This is different on 0.10, because SSL is strict by default
-  if (self.httpModule === https &&
+  if (self.uri.protocol === 'https:' &&
     self.strictSSL && (!response.hasOwnProperty('socket') ||
       !response.socket.authorized)) {
     debug('strict ssl error', self.uri.href)
