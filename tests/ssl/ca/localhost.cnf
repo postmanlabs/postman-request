@@ -1,3 +1,5 @@
+config_diagnostics = 1
+
 [ req ]
 default_bits           = 1024
 days                   = 3650
@@ -17,4 +19,8 @@ emailAddress           = do.not@email.me
 
 [ req_attributes ]
 challengePassword              = password challenge
+
+[ usr_cert ]
+basicConstraints=critical, CA:FALSE
+keyUsage=critical, nonRepudiation, digitalSignature, keyEncipherment
 

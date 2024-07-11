@@ -76,7 +76,7 @@ function setListeners (server, type) {
         dest += '->' + match[1]
       }
       event('%s proxy to %s', type, dest)
-      request(req.url, { followRedirect: false, protocolVersion: 'http1' }).pipe(res)
+      request(req.url, { followRedirect: false }).pipe(res)
     }
   })
 
@@ -485,7 +485,7 @@ function addTests () {
   }, [
     'http connect to localhost:' + ss2.port,
     // it should bubble up the key mismatch error
-    'err error:0B080074:x509 certificate routines:X509_check_private_key:key values mismatch'
+    'err error:05800074:x509 certificate routines::key values mismatch'
   ])
 }
 

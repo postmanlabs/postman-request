@@ -1,10 +1,10 @@
 [ req ]
-default_bits           = 1024
-days                   = 3650
+default_bits           = 2048
+days                   = 9999
 distinguished_name     = req_distinguished_name
 attributes             = req_attributes
 prompt                 = no
-output_password        = password
+x509_extensions        = v3_ca
 
 [ req_distinguished_name ]
 C                      = US
@@ -18,3 +18,9 @@ emailAddress           = do.not@email.me
 [ req_attributes ]
 challengePassword              = password challenge
 
+[ v3_ca ]
+authorityInfoAccess = @issuer_info
+
+[ issuer_info ]
+OCSP;URI.0 = http://ocsp.postman.com/
+caIssuers;URI.0 = http://ca.postman.com/ca.cert

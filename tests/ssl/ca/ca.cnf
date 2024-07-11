@@ -1,10 +1,11 @@
 [ req ]
-default_bits           = 1024
-days                   = 3650
+default_bits           = 2048
+days                   = 9999
 distinguished_name     = req_distinguished_name
 attributes             = req_attributes
 prompt                 = no
 output_password        = password
+x509_extensions        = v3_ca
 
 [ req_distinguished_name ]
 C                      = US
@@ -18,3 +19,5 @@ emailAddress           = mikeal@mikealrogers.com
 [ req_attributes ]
 challengePassword              = password challenge
 
+[ v3_ca ]
+basicConstraints = CA:TRUE

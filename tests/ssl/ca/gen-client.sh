@@ -9,7 +9,7 @@ set -ex
 openssl genrsa -out client.key 2048
 
 # Create a certificate signing request
-openssl req -new -sha256 -key client.key -out client.csr -config client.cnf -days 1095
+openssl req -new -key client.key -out client.csr -config client.cnf
 
 # Use the CSR and the CA key (previously generated) to create a certificate
 openssl x509 -req \
