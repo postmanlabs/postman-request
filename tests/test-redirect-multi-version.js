@@ -1,8 +1,6 @@
 var server = require('./server')
-var assert = require('assert')
 var request = require('../index')
 var tape = require('tape')
-var http = require('http')
 var destroyable = require('server-destroy')
 
 var plainServer = server.createServer()
