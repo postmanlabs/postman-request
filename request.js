@@ -1278,7 +1278,6 @@ Request.prototype.onRequestResponse = function (response) {
     }
 
     debug('response end', self.uri.href, response.statusCode, response.headers)
-
   })
 
   if (self._aborted) {
