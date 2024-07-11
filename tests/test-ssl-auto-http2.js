@@ -18,7 +18,6 @@ var clientCert = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.crt'))
 var clientKeyEnc = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client-enc.key'))
 var clientPassword = 'password'
 
-
 var http2SecureServer = server.createHttp2Server({
   key: path.resolve(__dirname, 'ssl/ca/localhost.key'),
   cert: path.resolve(__dirname, 'ssl/ca/localhost.crt'),
@@ -41,8 +40,8 @@ tape('setup', function (t) {
   })
 
   http2SecureServer.listen(0, function () {
-      t.end()
-    })
+    t.end()
+  })
 })
 
 tape('key + cert', function (t) {
@@ -139,6 +138,6 @@ tape('ca + extraCA', function (t) {
 
 tape('cleanup', function (t) {
   http2SecureServer.destroy(function () {
-      t.end()
+    t.end()
   })
 })

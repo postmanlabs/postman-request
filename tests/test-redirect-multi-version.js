@@ -20,17 +20,17 @@ tape('setup', function (t) {
       res.end('plain')
     })
     plainServer.on('/redir', function (req, res) {
-        res.writeHead(301, { 'location': 'http://localhost:' + plainServer.port + '/' })
-        res.end()
+      res.writeHead(301, { 'location': 'http://localhost:' + plainServer.port + '/' })
+      res.end()
     })
     plainServer.on('/redir/https', function (req, res) {
-        res.writeHead(301, { 'location': 'https://localhost:' + httpsServer.port + '/' })
-        res.end()
+      res.writeHead(301, { 'location': 'https://localhost:' + httpsServer.port + '/' })
+      res.end()
     })
 
     plainServer.on('/redir/http2', function (req, res) {
-        res.writeHead(301, { 'location': 'https://localhost:' + http2Server.port + '/' })
-        res.end()
+      res.writeHead(301, { 'location': 'https://localhost:' + http2Server.port + '/' })
+      res.end()
     })
 
     httpsServer.listen(0, function () {
@@ -70,14 +70,13 @@ tape('setup', function (t) {
           res.writeHead(301, { 'location': 'https://localhost:' + http2Server.port + '/' })
           res.end()
         })
-      t.end()
+        t.end()
       })
-
     })
   })
 })
 
-tape('HTTP to HTTP2', function (t){
+tape('HTTP to HTTP2', function (t) {
   var options = { strictSSL: false }
   request('http://localhost:' + plainServer.port + '/redir/http2', options, function (err, res, body) {
     t.equal(err, null)
@@ -85,10 +84,10 @@ tape('HTTP to HTTP2', function (t){
     t.equal(res.statusCode, 200)
     t.equal(res.httpVersion, '2.0')
     t.end()
-  });
+  })
 })
 
-tape('HTTPS to HTTP2', function (t){
+tape('HTTPS to HTTP2', function (t) {
   var options = { strictSSL: false }
   request('https://localhost:' + httpsServer.port + '/redir/http2', options, function (err, res, body) {
     t.equal(err, null)
@@ -96,10 +95,10 @@ tape('HTTPS to HTTP2', function (t){
     t.equal(res.statusCode, 200)
     t.equal(res.httpVersion, '2.0')
     t.end()
-  });
+  })
 })
 
-tape('HTTP2 to HTTP', function (t){
+tape('HTTP2 to HTTP', function (t) {
   var options = { strictSSL: false }
   request('https://localhost:' + http2Server.port + '/redir', options, function (err, res, body) {
     t.equal(err, null)
@@ -107,24 +106,23 @@ tape('HTTP2 to HTTP', function (t){
     t.equal(res.statusCode, 200)
     t.equal(res.httpVersion, '1.1')
     t.end()
-  });
+  })
 })
 
-tape('HTTP2 to HTTPS', function (t){
+tape('HTTP2 to HTTPS', function (t) {
   var options = { strictSSL: false }
   request('https://localhost:' + http2Server.port + '/redir/https', options, function (err, res, body) {
     t.equal(err, null)
     t.equal(body, 'https')
     t.equal(res.httpVersion, '1.1')
     t.end()
-  });
+  })
 })
 
-
 tape('cleanup', function (t) {
-  plainServer.destroy(() =>{
-    httpsServer.destroy(()=>{
-      http2Server.destroy(()=>{
+  plainServer.destroy(() => {
+    httpsServer.destroy(() => {
+      http2Server.destroy(() => {
         t.end()
       })
     })

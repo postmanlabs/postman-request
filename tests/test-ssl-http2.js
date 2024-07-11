@@ -18,7 +18,6 @@ var clientCert = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.crt'))
 var clientKeyEnc = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client-enc.key'))
 var clientPassword = 'password'
 
-
 var http2SecureServer = server.createHttp2Server({
   key: path.resolve(__dirname, 'ssl/ca/localhost.key'),
   cert: path.resolve(__dirname, 'ssl/ca/localhost.crt'),
@@ -41,8 +40,8 @@ tape('setup', function (t) {
   })
 
   http2SecureServer.listen(0, function () {
-      t.end()
-    })
+    t.end()
+  })
 })
 
 tape('key + cert', function (t) {
@@ -51,7 +50,7 @@ tape('key + cert', function (t) {
     ca: ca,
     key: clientKey,
     cert: clientCert,
-    protocolVersion: "http2"
+    protocolVersion: 'http2'
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(body.toString(), 'authorized')
@@ -66,7 +65,7 @@ tape('key + cert + passphrase', function (t) {
     key: clientKeyEnc,
     cert: clientCert,
     passphrase: clientPassword,
-    protocolVersion: "http2"
+    protocolVersion: 'http2'
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(body.toString(), 'authorized')
@@ -81,7 +80,7 @@ tape('key + cert + passphrase(invalid)', function (t) {
     key: clientKeyEnc,
     cert: clientCert,
     passphrase: 'invalidPassphrase',
-    protocolVersion: "http2"
+    protocolVersion: 'http2'
   }, function (err, res, body) {
     t.ok(err)
     t.end()
@@ -94,7 +93,7 @@ tape('pfx + passphrase', function (t) {
     ca: ca,
     pfx: clientPfx,
     passphrase: clientPassword,
-    protocolVersion: "http2"
+    protocolVersion: 'http2'
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(body.toString(), 'authorized')
@@ -108,7 +107,7 @@ tape('pfx + passphrase(invalid)', function (t) {
     ca: ca,
     pfx: clientPfx,
     passphrase: 'invalidPassphrase',
-    protocolVersion: "http2"
+    protocolVersion: 'http2'
   }, function (err, res, body) {
     t.ok(err)
     t.end()
@@ -121,7 +120,7 @@ tape('extraCA', function (t) {
     extraCA: ca,
     key: clientKey,
     cert: clientCert,
-    protocolVersion: "http2"
+    protocolVersion: 'http2'
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(body.toString(), 'authorized')
@@ -136,7 +135,7 @@ tape('ca + extraCA', function (t) {
     extraCA: '---INVALID CERT---', // make sure this won't affect options.ca
     key: clientKey,
     cert: clientCert,
-    protocolVersion: "http2"
+    protocolVersion: 'http2'
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(body.toString(), 'authorized')
@@ -146,6 +145,6 @@ tape('ca + extraCA', function (t) {
 
 tape('cleanup', function (t) {
   http2SecureServer.destroy(function () {
-      t.end()
+    t.end()
   })
 })
