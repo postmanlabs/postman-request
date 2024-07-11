@@ -354,9 +354,9 @@ function addTests () {
   }, [
     'http connect to localhost:' + ss2.port,
     // it should bubble up the key mismatch error
-    process.versions.node.split('.')[0] < 18 ? 'err error:05800074:x509 certificate routines::key values mismatch'
-      : 'err error:05800074:x509 certificate routines::key values mismatch'
-  ])
+    process.versions.node.split('.')[0] < 18
+      ? 'err error:0B080074:x509 certificate routines:X509_check_private_key:key values mismatch'
+      : 'err error:05800074:x509 certificate routines::key values mismatch' ])
 }
 
 tape('setup', function (t) {
