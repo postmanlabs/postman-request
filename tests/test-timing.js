@@ -193,7 +193,9 @@ tape('HTTPS: non-redirected request is timed', function (t) {
     t.equal((res.timingPhases.firstByte > 0), true)
     t.equal((res.timingPhases.download > 0), true)
     t.equal((res.timingPhases.total > 0), true)
-    t.equal((res.timingPhases.total <= (end - start)), true)
+    // timingPhases.total returns a high res time with nano-second precision, where as Date.now returns time with
+    // milli-second precision. Thus, we add a lee-way of atmost 1 millisecond to prevent flaky false-negatives
+    t.equal((res.timingPhases.total <= (end - start + 1)), true)
 
     // validate there are no unexpected properties
     var propNames = []

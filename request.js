@@ -1219,17 +1219,34 @@ Request.prototype.onRequestError = function (error) {
 
 Request.prototype.onRequestResponse = function (response) {
   var self = this
+  // De-referencing self.startTimeNow to prevent race condition during redirects
+  // Race-condition:
+  // 30x-url: Request start (self.startTimeNow initialized (self.start()))
+  // Redirect header to 200 request received
+  // 200-url: Request start (self.startTimeNow re-initialized, old value overwritten (redirect.js -> request.init() -> self.start()))
+  // 30x-url: end event received, timing calculated using new self.startTimeNow (incorrect)
+  //
+  // This must've been happening with http/1.1 as well when using keep-alive, but there were no tests to catch this.
+  // Was highlighted with http/2 where connections are reused by default
+  // Does not show up in http/1.x tests due to delays involving socket establishment
+  //
+  // New flow
+  // 30x-url: Request start (self.startTimeNow initialized)
+  // Redirect header to 200 request received
+  // 200-url: Request start (self.startTimeNow re-initialized, old value overwritten)
+  // 30x-url: end event received, timing calculated using requestSegmentStartTime (correct)
+  const requestSegmentStartTime = self.startTimeNow
 
   if (self.timing) {
-    self.timings.response = now() - self.startTimeNow
+    self.timings.response = now() - requestSegmentStartTime
   }
 
   debug('onRequestResponse', self.uri.href, response.statusCode, response.headers)
   response.on('end', function () {
     if (self.timing) {
-      self.timings.end = now() - self.startTimeNow
+      self.timings.end = now() - requestSegmentStartTime
       response.timingStart = self.startTime
-      response.timingStartTimer = self.startTimeNow
+      response.timingStartTimer = requestSegmentStartTime
 
       // fill in the blanks for any periods that didn't trigger, such as
       // no lookup or connect due to keep alive
