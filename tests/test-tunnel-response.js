@@ -66,7 +66,7 @@ function setListeners (server, type) {
         dest += '->' + match[1]
       }
       event('%s proxy to %s', type, dest)
-      request(req.url, { followRedirect: false }).pipe(res)
+      request(req.url, { followRedirect: false, protocolVersion: "http1" }).pipe(res)
     }
   })
 
@@ -94,7 +94,13 @@ function setListeners (server, type) {
         'Proxy-Agent: postman-proxy-agent\r\n' +
         '\r\n' +
         'OK')
-      client.pipe(server)
+      const clientPipe = client.pipe(server)
+
+      if (process.versions.node.split('.')[0] === '16') {
+        clientPipe.on('error', function (err) {
+          // Swallow "This socket has been ended by the other party" error on Node.js 16
+        })
+      };
       server.write(head)
       server.pipe(client)
     })
