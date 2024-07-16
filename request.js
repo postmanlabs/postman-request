@@ -275,10 +275,10 @@ Request.prototype.init = function (options) {
   }
   // additional postman feature ends
 
-  // Delete headers with value undefined since they break
+  // Delete headers with value undefined or HTTP/2 specific pseudoheaders since they break
   // ClientRequest.OutgoingMessage.setHeader in node 0.12
   for (var headerName in self.headers) {
-    if (typeof self.headers[headerName] === 'undefined') {
+    if (typeof self.headers[headerName] === 'undefined' || headerName.startsWith(':')) {
       delete self.headers[headerName]
     }
   }
@@ -1654,6 +1654,10 @@ Request.prototype.pipeDest = function (dest) {
   }
   if (dest.setHeader && !dest.headersSent) {
     for (var i in response.headers) {
+      if (i.startsWith(':')) {
+        // Don't set HTTP/2 pseudoheaders
+        continue
+      }
       // If the response content is being decoded, the Content-Encoding header
       // of the response doesn't represent the piped content, so don't pass it.
       if (!self.gzip || i !== 'content-encoding') {
