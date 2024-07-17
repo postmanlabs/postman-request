@@ -49,7 +49,8 @@ tape('key + cert', function (t) {
     url: http2SecureServer.url,
     ca: ca,
     key: clientKey,
-    cert: clientCert
+    cert: clientCert,
+    protocolVersion: 'auto'
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(body.toString(), 'authorized')
@@ -63,7 +64,8 @@ tape('key + cert + passphrase', function (t) {
     ca: ca,
     key: clientKeyEnc,
     cert: clientCert,
-    passphrase: clientPassword
+    passphrase: clientPassword,
+    protocolVersion: 'auto'
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(body.toString(), 'authorized')
@@ -77,7 +79,8 @@ tape('key + cert + passphrase(invalid)', function (t) {
     ca: ca,
     key: clientKeyEnc,
     cert: clientCert,
-    passphrase: 'invalidPassphrase'
+    passphrase: 'invalidPassphrase',
+    protocolVersion: 'auto'
   }, function (err, res, body) {
     t.ok(err)
     t.end()
@@ -89,7 +92,8 @@ tape('pfx + passphrase', function (t) {
     url: http2SecureServer.url,
     ca: ca,
     pfx: clientPfx,
-    passphrase: clientPassword
+    passphrase: clientPassword,
+    protocolVersion: 'auto'
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(body.toString(), 'authorized')
@@ -102,7 +106,8 @@ tape('pfx + passphrase(invalid)', function (t) {
     url: http2SecureServer.url,
     ca: ca,
     pfx: clientPfx,
-    passphrase: 'invalidPassphrase'
+    passphrase: 'invalidPassphrase',
+    protocolVersion: 'auto'
   }, function (err, res, body) {
     t.ok(err)
     t.end()
@@ -114,7 +119,8 @@ tape('extraCA', function (t) {
     url: http2SecureServer.url,
     extraCA: ca,
     key: clientKey,
-    cert: clientCert
+    cert: clientCert,
+    protocolVersion: 'auto'
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(body.toString(), 'authorized')
@@ -128,7 +134,8 @@ tape('ca + extraCA', function (t) {
     ca: ca,
     extraCA: '---INVALID CERT---', // make sure this won't affect options.ca
     key: clientKey,
-    cert: clientCert
+    cert: clientCert,
+    protocolVersion: 'auto'
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(body.toString(), 'authorized')

@@ -78,7 +78,8 @@ tape('piping to a request object', function (t) {
 
   var r1 = request.put({
     url: s.url + '/push',
-    strictSSL: false
+    strictSSL: false,
+    protocolVersion: 'http2'
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
@@ -98,7 +99,8 @@ tape('piping to a request object with invalid uri', function (t) {
   var r2 = request.put({
     url: '/bad-uri',
     json: true,
-    strictSSL: false
+    strictSSL: false,
+    protocolVersion: 'http2'
   }, function (err, res, body) {
     t.ok(err instanceof Error)
     t.equal(err.message, 'Invalid URI "/bad-uri"')
@@ -120,7 +122,8 @@ tape('piping to a request object with a json body', function (t) {
   var r2 = request.put({
     url: s.url + '/push-json',
     json: true,
-    strictSSL: false
+    strictSSL: false,
+    protocolVersion: 'http2'
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(res.statusCode, 200)
@@ -141,7 +144,8 @@ tape('piping from a request object', function (t) {
 
   request({
     url: s.url + '/pull',
-    strictSSL: false
+    strictSSL: false,
+    protocolVersion: 'http2'
   }).pipe(mypulldata)
 
   var d = ''
@@ -168,7 +172,8 @@ tape('pause when piping from a request object', function (t) {
   var paused = false
   request({
     url: s.url + '/chunks',
-    strictSSL: false
+    strictSSL: false,
+    protocolVersion: 'http2'
   })
     .on('data', function (chunk) {
       var self = this
@@ -202,7 +207,8 @@ tape('pause before piping from a request object', function (t) {
   var paused = true
   var r = request({
     url: s.url + '/pause-before',
-    strictSSL: false
+    strictSSL: false,
+    protocolVersion: 'http2'
   })
   r.pause()
   r.on('data', function (data) {
@@ -240,7 +246,7 @@ function testPipeFromFile (testName, hasContentLength) {
         res.end()
       }
     })
-    var r = request.put(s.url + '/pushjs', {strictSSL: false})
+    var r = request.put(s.url + '/pushjs', {strictSSL: false, protocolVersion: 'http2'})
     fs.createReadStream(__filename).pipe(r)
     if (hasContentLength) {
       r.setHeader('content-length', fileContents.length)
@@ -259,16 +265,16 @@ tape('piping to and from same URL', function (t) {
     t.equal(body, 'asdf')
     t.end()
   })
-  request.get(s.url + '/cat', {strictSSL: false})
-    .pipe(request.put(s.url + '/cat', {strictSSL: false}))
+  request.get(s.url + '/cat', {strictSSL: false, protocolVersion: 'http2'})
+    .pipe(request.put(s.url + '/cat', {strictSSL: false, protocolVersion: 'http2'}))
 })
 
 tape('piping between urls', function (t) {
   s.once('/catresp', function (req, res) {
-    request.get(s.url + '/cat', {strictSSL: false}).pipe(res)
+    request.get(s.url + '/cat', {strictSSL: false, protocolVersion: 'http2'}).pipe(res)
   })
 
-  request.get(s.url + '/catresp', {strictSSL: false}, function (err, res, body) {
+  request.get(s.url + '/catresp', {strictSSL: false, protocolVersion: 'http2'}, function (err, res, body) {
     t.equal(err, null)
     t.equal(res.headers['content-type'], 'text/plain-test')
     t.equal(res.headers['content-length'], '4')
@@ -279,7 +285,7 @@ tape('piping between urls', function (t) {
 tape('writing to file', function (t) {
   var doodleWrite = fs.createWriteStream(path.join(__dirname, 'test.jpg'))
 
-  request.get(s.url + '/doodle', {strictSSL: false}).pipe(doodleWrite)
+  request.get(s.url + '/doodle', {strictSSL: false, protocolVersion: 'http2'}).pipe(doodleWrite)
 
   doodleWrite.on('close', function () {
     t.deepEqual(
@@ -292,7 +298,7 @@ tape('writing to file', function (t) {
 
 tape('one-line proxy', function (t) {
   s.once('/onelineproxy', function (req, res) {
-    var x = request(s.url + '/doodle', {strictSSL: false, headers: {'pat': 'test'}})
+    var x = request(s.url + '/doodle', {strictSSL: false, headers: {'pat': 'test'}, protocolVersion: 'http2'})
     req.pipe(x)
     x.pipe(res)
   })
@@ -300,7 +306,8 @@ tape('one-line proxy', function (t) {
   request.get({
     uri: s.url + '/onelineproxy',
     headers: { 'x-oneline-proxy': 'nope' },
-    strictSSL: false
+    strictSSL: false,
+    protocolVersion: 'http2'
   }, function (err, res, body) {
     t.equal(err, null)
     t.equal(res.headers['x-oneline-proxy'], 'yup')
@@ -315,7 +322,7 @@ tape('piping after response', function (t) {
     res.end()
   })
 
-  var rAfterRes = request.post(s.url + '/afterresponse', {strictSSL: false})
+  var rAfterRes = request.post(s.url + '/afterresponse', {strictSSL: false, protocolVersion: 'http2'})
 
   rAfterRes.on('response', function () {
     var v = new ValidationStream(t, 'd')
@@ -339,7 +346,7 @@ tape('piping through a redirect', function (t) {
 
   var validateForward = new ValidationStream(t, 'd')
 
-  request.get(s.url + '/forward1', {strictSSL: false}).pipe(validateForward)
+  request.get(s.url + '/forward1', {strictSSL: false, protocolVersion: 'http2'}).pipe(validateForward)
 
   validateForward.on('end', function () {
     t.end()
@@ -367,7 +374,8 @@ tape('pipe options', function (t) {
 
   request({
     url: s.url + '/opts',
-    strictSSL: false
+    strictSSL: false,
+    protocolVersion: 'http2'
   }).pipe(optsStream, { end: false })
 })
 
@@ -377,7 +385,7 @@ tape('request.pipefilter is called correctly', function (t) {
   })
   var validatePipeFilter = new ValidationStream(t, 'd')
 
-  var r3 = request.get(s.url + '/pipefilter', { strictSSL: false })
+  var r3 = request.get(s.url + '/pipefilter', { strictSSL: false, protocolVersion: 'http2' })
   r3.pipe(validatePipeFilter)
   r3.pipefilter = function (res, dest) {
     t.equal(res, r3.response)

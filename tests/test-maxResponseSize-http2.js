@@ -60,7 +60,8 @@ tape('response < maxResponseSize', function (t) {
   var options = {
     method: 'GET',
     uri: server.url + '/50',
-    maxResponseSize: 100
+    maxResponseSize: 100,
+    protocolVersion: 'http2'
   }
 
   request(options, function (err, res, body) {
@@ -75,7 +76,8 @@ tape('response = maxResponseSize', function (t) {
   var options = {
     method: 'GET',
     uri: server.url + '/100',
-    maxResponseSize: 100
+    maxResponseSize: 100,
+    protocolVersion: 'http2'
   }
 
   request(options, function (err, res, body) {
@@ -90,7 +92,8 @@ tape('response > maxResponseSize', function (t) {
   var options = {
     method: 'GET',
     uri: server.url + '/200',
-    maxResponseSize: 100
+    maxResponseSize: 100,
+    protocolVersion: 'http2'
   }
 
   request(options, function (err, res, body) {
@@ -107,7 +110,8 @@ tape('extracted gzip response > maxResponseSize but content-length < maxResponse
     method: 'GET',
     uri: server.url + '/500?gzip=true', // for 500 bytes gzip response, content-length will be around 30
     maxResponseSize: 490,
-    gzip: true
+    gzip: true,
+    protocolVersion: 'http2'
   }
 
   request(options, function (err, res, body) {
@@ -124,7 +128,8 @@ tape('extracted gzip response < maxResponseSize', function (t) {
     method: 'GET',
     uri: server.url + '/100?gzip=true',
     maxResponseSize: 200,
-    gzip: true
+    gzip: true,
+    protocolVersion: 'http2'
   }
 
   request(options, function (err, res, body) {

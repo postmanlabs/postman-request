@@ -39,7 +39,9 @@ tape('setup', function (t) {
 })
 
 tape('verbose=false [default]', function (t) {
-  var options = {}
+  var options = {
+    protocolVersion: 'auto'
+  }
 
   request('http://localhost:' + plainServer.port + '/', options, function (err, res, body, debug) {
     t.equal(err, null)
@@ -56,7 +58,7 @@ tape('verbose=false [default]', function (t) {
 })
 
 tape('HTTP: verbose=true', function (t) {
-  var options = { verbose: true, time: false } // verbose overrides timing setting
+  var options = { verbose: true, time: false, protocolVersion: 'auto' } // verbose overrides timing setting
 
   request('http://localhost:' + plainServer.port + '/', options, function (err, res, body, debug) {
     t.equal(err, null)
@@ -88,7 +90,8 @@ tape('HTTP: verbose=true', function (t) {
 tape('HTTP: redirect(HTTPS) + verbose=true', function (t) {
   var options = {
     verbose: true,
-    strictSSL: false
+    strictSSL: false,
+    protocolVersion: 'auto'
   }
 
   request('http://localhost:' + plainServer.port + '/redir', options, function (err, res, body, debug) {
@@ -123,7 +126,8 @@ tape('HTTPS: verbose=true', function (t) {
   var options = {
     verbose: true,
     strictSSL: false,
-    time: false // verbose overrides timing setting
+    time: false, // verbose overrides timing setting
+    protocolVersion: 'auto'
   }
 
   request('https://localhost:' + http2Server.port + '/', options, function (err, res, body, debug) {
@@ -149,7 +153,8 @@ tape('HTTPS: verbose=true', function (t) {
 tape('HTTPS: redirect(HTTP) + verbose=true', function (t) {
   var options = {
     verbose: true,
-    strictSSL: false
+    strictSSL: false,
+    protocolVersion: 'auto'
   }
 
   request('https://localhost:' + http2Server.port + '/redir', options, function (err, res, body, debug) {
@@ -166,7 +171,7 @@ tape('HTTPS: redirect(HTTP) + verbose=true', function (t) {
     t.deepEqual(Object.keys(debug[0].session), ['id', 'reused', 'data'])
     t.deepEqual(Object.keys(debug[0].session.data), ['addresses', 'tls'])
     t.deepEqual(Object.keys(debug[0].session.data.tls), ['reused', 'authorized', 'authorizationError', 'cipher', 'protocol', 'ephemeralKeyInfo', 'peerCertificate'])
-    t.equal(debug[0].session.reused, false)
+    t.equal(debug[0].session.reused, true)
     t.deepEqual(Object.keys(debug[0].response), ['statusCode', 'headers', 'httpVersion'])
 
     t.deepEqual(Object.keys(debug[1]), ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])

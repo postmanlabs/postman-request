@@ -114,7 +114,7 @@ tape('HTTPS: redirected request is timed with rollup', function (t) {
 })
 
 tape('HTTPS/2: Reused stream is timed', function (t) {
-  var options = { time: true, strictSSL: false }
+  var options = { time: true, strictSSL: false, protocolVersion: 'http2' }
   var start1 = new Date().getTime()
 
   request('https://localhost:' + httpsServer.port + '/', options, function (err1, res1, body1) {

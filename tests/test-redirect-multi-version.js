@@ -75,7 +75,7 @@ tape('setup', function (t) {
 })
 
 tape('HTTP to HTTP2', function (t) {
-  var options = { strictSSL: false }
+  var options = { strictSSL: false, protocolVersion: 'auto' }
   request('http://localhost:' + plainServer.port + '/redir/http2', options, function (err, res, body) {
     t.equal(err, null)
     t.equal(body, 'http2')
@@ -86,7 +86,7 @@ tape('HTTP to HTTP2', function (t) {
 })
 
 tape('HTTPS to HTTP2', function (t) {
-  var options = { strictSSL: false }
+  var options = { strictSSL: false, protocolVersion: 'auto' }
   request('https://localhost:' + httpsServer.port + '/redir/http2', options, function (err, res, body) {
     t.equal(err, null)
     t.equal(body, 'http2')
@@ -97,7 +97,7 @@ tape('HTTPS to HTTP2', function (t) {
 })
 
 tape('HTTP2 to HTTP', function (t) {
-  var options = { strictSSL: false }
+  var options = { strictSSL: false, protocolVersion: 'auto' }
   request('https://localhost:' + http2Server.port + '/redir', options, function (err, res, body) {
     t.equal(err, null)
     t.equal(body, 'plain')
@@ -108,7 +108,7 @@ tape('HTTP2 to HTTP', function (t) {
 })
 
 tape('HTTP2 to HTTPS', function (t) {
-  var options = { strictSSL: false }
+  var options = { strictSSL: false, protocolVersion: 'auto' }
   request('https://localhost:' + http2Server.port + '/redir/https', options, function (err, res, body) {
     t.equal(err, null)
     t.equal(body, 'https')

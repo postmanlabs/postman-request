@@ -6,7 +6,6 @@ var rimraf = require('rimraf')
 var assert = require('assert')
 var tape = require('tape')
 var url = require('url')
-var destroyable = require('server-destroy')
 var server = require('./server')
 
 var rawPath = [null, 'raw', 'path'].join('/')
@@ -35,46 +34,51 @@ s.on(queryPath + searchString, function (req, res) {
   res.end(expectedBody)
 })
 
-destroyable(s)
+var connections = []
 
-function setup () {
-  return new Promise((resolve) => s.listen(socket, function () {
-    resolve()
-  }))
-}
-
-function tearDown (cb) {
-  s.destroy(() => {
-    fs.unlink(socket, function () {
-      cb()
-    })
+s.on('connection', function (conn) {
+  connections.push(conn)
+  conn.on('close', function () {
+    connections.splice(connections.indexOf(conn), 1)
   })
-}
+})
+
+tape('setup', function (t) {
+  s.listen(socket, function () {
+    t.end()
+  })
+})
 
 tape('unix socket connection', async function (t) {
-  await setup()
-  request('https://unix:' + socket + ':' + rawPath, function (err, res, body) {
+  request('https://unix:' + socket + ':' + rawPath, { protocolVersion: 'http2' }, function (err, res, body) {
     t.equal(err, null, 'no error in connection')
     t.equal(res.statusCode, statusCode, 'got HTTP 200 OK response')
     t.equal(body, expectedBody, 'expected response body is received')
-    tearDown(() => {
-      t.end()
-    })
+    t.end()
   })
 })
 
 tape('unix socket connection with qs', async function (t) {
-  await setup()
   request({
     uri: 'https://unix:' + socket + ':' + queryPath,
     qs: {
       foo: 'bar'
-    }
+    },
+    protocolVersion: 'http2'
   }, function (err, res, body) {
     t.equal(err, null, 'no error in connection')
     t.equal(res.statusCode, statusCode, 'got HTTP 200 OK response')
     t.equal(body, expectedBody, 'expected response body is received')
-    tearDown(() => {
+    t.end()
+  })
+})
+
+tape('cleanup', function (t) {
+  connections.forEach(conn => {
+    conn.destroy()
+  })
+  s.close(function () {
+    fs.unlink(socket, function () {
       t.end()
     })
   })
