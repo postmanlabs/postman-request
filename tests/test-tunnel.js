@@ -104,7 +104,7 @@ function setListeners (server, type) {
       const clientPipe = client.pipe(server)
 
       if (process.versions.node.split('.')[0] === '16') {
-        clientPipe.on('error', function (err) {
+        clientPipe.on('error', function () {
           // Swallow "This socket has been ended by the other party" error on Node.js 16
         })
       };
