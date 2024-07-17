@@ -41,6 +41,7 @@ function initParams (uri, options, callback) {
   }
 
   // Disable http/2 when using proxy or tunnels
+  // TODO: Remove this when http2 supports proxy and tunneling
   if (params.tunnel || params.proxy) {
     params.protocolVersion = 'http1'
   }
