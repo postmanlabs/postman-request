@@ -1309,6 +1309,7 @@ Request.prototype.onRequestResponse = function (response) {
     httpVersion: response.httpVersion
   }
 
+  // Setting this again since the actual request version that was used is found only after ALPN negotiation in case of protocolVersion: auto
   self._reqResInfo.request.httpVersion = response.httpVersion
 
   if (self.timing) {
