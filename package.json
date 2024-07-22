@@ -56,7 +56,7 @@
   "devDependencies": {
     "bluebird": "^3.2.1",
     "browserify": "^16.5.2",
-    "browserify-istanbul": "^2.0.0",
+    "browserify-istanbul": "^3.0.0",
     "buffer-equal": "^1.0.1",
     "codecov": "^3.0.4",
     "coveralls": "^3.0.2",
