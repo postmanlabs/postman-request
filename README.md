@@ -791,7 +791,7 @@ request({url: 'https://www.google.com', verbose: true}, function (error, respons
       "response": {
         "statusCode": 200,
         "httpVersion": "1.1".
-        "dowloadedBytes": 1234,
+        "downloadedBytes": 1234,
       },
       "timingStart": 1552908287924,
       "timingStartTimer": 805.690674,
