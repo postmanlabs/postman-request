@@ -5,8 +5,10 @@ var request = require('../index')
 var tape = require('tape')
 var path = require('path')
 var fs = require('fs')
+var destroyable = require('server-destroy')
 
 var s = server.createHttp2Server()
+destroyable(s)
 
 tape('setup', function (t) {
   s.listen(0, function () {
@@ -154,8 +156,6 @@ addTest('testPutMultipartPostambleCRLF', {
 tape('testBinaryFile', function (t) {
   s.on('/', function (req, res) {
     req.pipe(res)
-    // Close the session if it's a HTTP/2 request. This is not representative of a true http/2 server that might keep the session open. But we need this to close the server in the tests.
-    req.stream && req.stream.session && req.stream.session.close && req.stream.session.close()
   })
 
   request(
@@ -178,8 +178,6 @@ tape('testBinaryFile', function (t) {
 tape('typed array', function (t) {
   s.on('/', function (req, res) {
     req.pipe(res)
-    // Close the session if it's a HTTP/2 request. This is not representative of a true http/2 server that might keep the session open. But we need this to close the server in the tests.
-    req.stream && req.stream.session && req.stream.session.close && req.stream.session.close()
   })
 
   var data = new Uint8Array([1, 2, 3])
@@ -203,7 +201,7 @@ tape('typed array', function (t) {
 })
 
 tape('cleanup', function (t) {
-  s.close(function () {
+  s.destroy(function () {
     t.end()
   })
 })

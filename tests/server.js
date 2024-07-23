@@ -111,8 +111,6 @@ exports.createPostValidator = function (text, reqContentType) {
       resp.writeHead(200, { 'content-type': 'text/plain' })
       resp.write(r)
       resp.end()
-      // Close the session if it's a HTTP/2 request. This is not representative of a true http/2 server that might keep the session open. But we need this to close the server in the tests.
-      req || req.stream || req.stream.session || req.stream.session.close || req.stream.session.close()
     })
   }
   return l
@@ -133,8 +131,6 @@ exports.createPostJSONValidator = function (value, reqContentType) {
       resp.writeHead(200, { 'content-type': 'application/json' })
       resp.write(r)
       resp.end()
-      // Close the session if it's a HTTP/2 request. This is not representative of a true http/2 server that might keep the session open. But we need this to close the server in the tests.
-      req || req.stream || req.stream.session || req.stream.session.close || req.stream.session.close()
     })
   }
   return l
@@ -145,9 +141,6 @@ exports.createGetResponse = function (text, contentType) {
     resp.writeHead(200, { 'content-type': contentType })
     resp.write(text)
     resp.end()
-
-    // Close the session if it's a HTTP/2 request. This is not representative of a true http/2 server that might keep the session open. But we need this to close the server in the tests.
-    req || req.stream || req.stream.session || req.stream.session.close || req.stream.session.close()
   }
   return l
 }
@@ -159,8 +152,6 @@ exports.createChunkResponse = function (chunks, contentType) {
       resp.write(chunk)
     })
     resp.end()
-    // Close the session if it's a HTTP/2 request. This is not representative of a true http/2 server that might keep the session open. But we need this to close the server in the tests.
-    req || req.stream || req.stream.session || req.stream.session.close || req.stream.session.close()
   }
   return l
 }

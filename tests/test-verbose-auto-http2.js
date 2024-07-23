@@ -77,7 +77,7 @@ tape('HTTP: verbose=true', function (t) {
     t.deepEqual(Object.keys(debug[0].session), ['id', 'reused', 'data'])
     t.deepEqual(Object.keys(debug[0].session.data), ['addresses'])
     t.equal(debug[0].session.reused, false)
-    t.deepEqual(Object.keys(debug[0].response), ['statusCode', 'headers', 'httpVersion'])
+    t.deepEqual(Object.keys(debug[0].response), ['statusCode', 'headers', 'httpVersion', 'downloadedBytes'])
 
     t.notEqual(debug[0].response.headers.length, 0)
     t.equal(debug[0].response.headers[0].key, 'Date')
@@ -116,7 +116,7 @@ tape('HTTP: redirect(HTTPS) + verbose=true', function (t) {
     t.deepEqual(Object.keys(debug[1].session.data), ['addresses', 'tls'])
     t.deepEqual(Object.keys(debug[1].session.data.tls), ['reused', 'authorized', 'authorizationError', 'cipher', 'protocol', 'ephemeralKeyInfo', 'peerCertificate'])
     t.equal(debug[1].session.reused, false)
-    t.deepEqual(Object.keys(debug[1].response), ['statusCode', 'headers', 'httpVersion'])
+    t.deepEqual(Object.keys(debug[1].response), ['statusCode', 'headers', 'httpVersion', 'downloadedBytes'])
 
     t.end()
   })
@@ -144,7 +144,7 @@ tape('HTTPS: verbose=true', function (t) {
     t.deepEqual(Object.keys(debug[0].session.data), ['addresses', 'tls'])
     t.deepEqual(Object.keys(debug[0].session.data.tls), ['reused', 'authorized', 'authorizationError', 'cipher', 'protocol', 'ephemeralKeyInfo', 'peerCertificate'])
     t.equal(debug[0].session.reused, true)
-    t.deepEqual(Object.keys(debug[0].response), ['statusCode', 'headers', 'httpVersion'])
+    t.deepEqual(Object.keys(debug[0].response), ['statusCode', 'headers', 'httpVersion', 'downloadedBytes'])
 
     t.end()
   })
@@ -179,7 +179,7 @@ tape('HTTPS: redirect(HTTP) + verbose=true', function (t) {
     t.deepEqual(Object.keys(debug[1].session), ['id', 'reused', 'data'])
     t.deepEqual(Object.keys(debug[1].session.data), ['addresses'])
     t.equal(debug[1].session.reused, false)
-    t.deepEqual(Object.keys(debug[1].response), ['statusCode', 'headers', 'httpVersion'])
+    t.deepEqual(Object.keys(debug[1].response), ['statusCode', 'headers', 'httpVersion', 'downloadedBytes'])
 
     t.end()
   })
