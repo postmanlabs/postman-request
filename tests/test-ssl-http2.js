@@ -26,7 +26,15 @@ var http2SecureServer = server.createHttp2Server({
   rejectUnauthorized: true
 })
 
+var httpsServer = server.createSSLServer({
+  key: path.resolve(__dirname, 'ssl/ca/localhost.key'),
+  cert: path.resolve(__dirname, 'ssl/ca/localhost.crt'),
+  ca: caPath,
+  rejectUnauthorized: true
+})
+
 destroyable(http2SecureServer)
+destroyable(httpsServer)
 
 tape('setup', function (t) {
   http2SecureServer.on('/', function (req, res) {
@@ -39,8 +47,20 @@ tape('setup', function (t) {
     }
   })
 
+  httpsServer.on('/', function (req, res) {
+    if (req.connection.authorized) {
+      res.writeHead(200, { 'Content-Type': 'text/plain' })
+      res.end('authorized')
+    } else {
+      res.writeHead(401, { 'Content-Type': 'text/plain' })
+      res.end('unauthorized')
+    }
+  })
+
   http2SecureServer.listen(0, function () {
-    t.end()
+    httpsServer.listen(0, function () {
+      t.end()
+    })
   })
 })
 
@@ -143,8 +163,26 @@ tape('ca + extraCA', function (t) {
   })
 })
 
+tape('http2 -> https', function (t) {
+  request({
+    url: httpsServer.url,
+    ca: ca,
+    key: clientKey,
+    cert: clientCert,
+    protocolVersion: 'http2'
+  }, function (err, res, body) {
+    t.notEqual(err, null)
+    t.equal(err.code, 'ERR_HTTP2_ERROR')
+    t.equal(err.errno, -505)
+
+    t.end()
+  })
+})
+
 tape('cleanup', function (t) {
   http2SecureServer.destroy(function () {
-    t.end()
+    httpsServer.destroy(function () {
+      t.end()
+    })
   })
 })

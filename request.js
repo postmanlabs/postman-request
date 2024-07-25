@@ -1139,8 +1139,16 @@ Request.prototype.start = function () {
 
         // clean up timing event listeners if needed on error
         self.req.once('error', function () {
-          socket.removeListener('lookup', onLookupTiming)
-          socket.removeListener('connect', onConnectTiming)
+          // Swallow ERR_HTTP2_SOCKET_UNBOUND error when removing listeners in case of error.
+          // This needs to be done since http2 ClientSession disassociates the underlying socket from the session before emitting the error event
+          try {
+            socket.removeListener('lookup', onLookupTiming)
+            socket.removeListener('connect', onConnectTiming)
+          } catch (err) {
+            if (err.code !== 'ERR_HTTP2_SOCKET_UNBOUND') {
+              throw err
+            }
+          }
         })
       }
     }
@@ -1176,7 +1184,15 @@ Request.prototype.start = function () {
         socket.on('connect', onReqSockConnect)
 
         self.req.on('error', function (err) { // eslint-disable-line handle-callback-err
-          socket.removeListener('connect', onReqSockConnect)
+          // Swallow ERR_HTTP2_SOCKET_UNBOUND error when removing listeners in case of error.
+          // This needs to be done since http2 ClientSession disassociates the underlying socket from the session before emitting the error event
+          try {
+            socket.removeListener('connect', onReqSockConnect)
+          } catch (err) {
+            if (err.code !== 'ERR_HTTP2_SOCKET_UNBOUND') {
+              throw err
+            }
+          }
         })
 
         // Set a timeout in memory - this block will throw if the server takes more
