@@ -2008,6 +2008,10 @@ Request.prototype.end = function (chunk) {
     // Reference to request, so if _reqResInfo is updated (in case of redirects), we still can update the headers
     const request = self._reqResInfo.request
     Promise.resolve(self.req._header).then(function (header) {
+      if (!header) {
+        request.headers = []
+        return
+      }
       request.headers = parseRequestHeaders(header)
     })
   }
