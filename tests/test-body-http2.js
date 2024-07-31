@@ -153,6 +153,69 @@ addTest('testPutMultipartPostambleCRLF', {
   ]
 })
 
+tape('test Delete Request', function (t) {
+  s.on('/', function (req, res) {
+    req.pipe(res)
+  })
+
+  request(
+    {
+      uri: 'https://localhost:' + s.port,
+      method: 'DELETE',
+      strictSSL: false,
+      protocolVersion: 'http2',
+      body: 'test-data'
+    },
+    function (err, res, body) {
+      t.error(err) // defaults to 'application/octet-stream' content-type
+      t.equal(res.statusCode, 200)
+      t.equal(body.toString(), 'test-data')
+      s.removeAllListeners('/')
+      t.end()
+    }
+  )
+})
+
+tape('test HEAD Request', function (t) {
+  request(
+    {
+      uri: 'https://github.com',
+      method: 'HEAD',
+      strictSSL: false,
+      protocolVersion: 'http2',
+      body: 'test-data'
+    },
+    function (err, res, body) {
+      t.error(err)
+      t.equal(res.statusCode, 400)
+      t.end()
+    }
+  )
+})
+
+tape('test GET Request with body', function (t) {
+  s.on('/', function (req, res) {
+    req.pipe(res)
+  })
+
+  request(
+    {
+      uri: 'https://localhost:' + s.port,
+      method: 'GET',
+      strictSSL: false,
+      protocolVersion: 'http2',
+      body: 'test-data'
+    },
+    function (err, res, body) {
+      t.error(err)
+      t.equal(res.statusCode, 200)
+      t.equal(body.toString(), 'test-data')
+      s.removeAllListeners('/')
+      t.end()
+    }
+  )
+})
+
 tape('testBinaryFile', function (t) {
   s.on('/', function (req, res) {
     req.pipe(res)
