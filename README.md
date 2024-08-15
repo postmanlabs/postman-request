@@ -976,6 +976,7 @@ request.defaults({
 [linux-timeout]: http://www.sekuda.com/overriding_the_default_linux_kernel_20_second_tcp_socket_connect_timeout
 
 - `maxResponseSize` - Abort request if the response size exceeds this threshold (bytes).
+- `agentIdleTimeout` - set to number of milliseconds after which the agent should be discarded for reuse
 ---
 
 - `localAddress` - local interface to bind for network connections.

@@ -649,7 +649,7 @@ Request.prototype.init = function (options) {
     self.agent = false
   } else {
     try {
-      self.agent = self.agent || self.getNewAgent()
+      self.agent = self.agent || self.getNewAgent({agentIdleTimeout: options.agentIdleTimeout})
     } catch (error) {
       // tls.createSecureContext() throws on bad options
       return self.emit('error', error)
@@ -774,7 +774,7 @@ Request.prototype.init = function (options) {
   })
 }
 
-Request.prototype.getNewAgent = function () {
+Request.prototype.getNewAgent = function ({agentIdleTimeout}) {
   var self = this
   var Agent = self.agentClass
   var options = {}
@@ -900,7 +900,7 @@ Request.prototype.getNewAgent = function () {
     }
   }
 
-  if (self.pool === globalPool && !poolKey && Object.keys(options).length === 0 && self.httpModule.globalAgent) {
+  if (self.pool === globalPool && !poolKey && Object.keys(options).length === 0 && self.httpModule.globalAgent && typeof agentIdleTimeout !== 'number') {
     // not doing anything special.  Use the globalAgent
     return self.httpModule.globalAgent
   }
@@ -908,16 +908,19 @@ Request.prototype.getNewAgent = function () {
   // we're using a stored agent.  Make sure it's protocol-specific
   poolKey = self.protocolVersion + ':' + self.uri.protocol + poolKey
 
+  let agent = self.pool[poolKey]
+
   // generate a new agent for this setting if none yet exists
-  if (!self.pool[poolKey]) {
-    self.pool[poolKey] = new Agent(options)
+  if (!agent || (typeof agentIdleTimeout === 'number' && (agent.lastUsedAt || 0) + agentIdleTimeout < Date.now())) {
+    agent = self.pool[poolKey] = new Agent(options)
     // properly set maxSockets on new agents
     if (self.pool.maxSockets) {
       self.pool[poolKey].maxSockets = self.pool.maxSockets
     }
   }
 
-  return self.pool[poolKey]
+  agent.lastUsedAt = Date.now()
+  return agent
 }
 
 Request.prototype.start = function () {
