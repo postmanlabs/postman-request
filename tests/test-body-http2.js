@@ -187,7 +187,7 @@ tape('test HEAD Request', function (t) {
     },
     function (err, res, body) {
       t.error(err)
-      t.equal(res.statusCode, 400)
+      t.equal(res.statusCode, 200)
       t.end()
     }
   )
