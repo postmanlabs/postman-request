@@ -5,7 +5,6 @@ var request = require('../index')
 var tape = require('tape')
 var destroyable = require('server-destroy')
 
-
 var s = server.createHttp2Server()
 destroyable(s)
 
@@ -39,8 +38,6 @@ tape('setup', function (t) {
   })
 })
 
-
-
 tape('undefined headers', function (t) {
   request({
     url: s.url + '/headers.json',
@@ -72,7 +69,6 @@ tape('preserve port in authority header if non-standard port', function (t) {
   })
 })
 
-
 tape('strip port in authority header if explicit standard port (:443) & protocol (HTTPS)', function (t) {
   request({
     url: 'https://localhost:443/headers.json',
@@ -83,7 +79,6 @@ tape('strip port in authority header if explicit standard port (:443) & protocol
     t.end()
   })
 })
-
 
 tape('strip port in authority header if implicit standard port & protocol (HTTPS)', function (t) {
   request({
