@@ -930,11 +930,11 @@ Request.prototype.start = function () {
   if (self.timing) {
     // All timings will be relative to this request's startTime.  In order to do this,
     // we need to capture the wall-clock start time (via Date), immediately followed
-    // by the high-resolution timer (performance.now()).  While these two won't be set
+    // by the high-resolution timer (via now()).  While these two won't be set
     // at the _exact_ same time, they should be close enough to be able to calculate
     // high-resolution, monotonically non-decreasing timestamps relative to startTime.
     var startTime = new Date().getTime()
-    var startTimeNow = performance.now()
+    var startTimeNow = now()
   }
 
   if (self._aborted) {
@@ -1050,15 +1050,15 @@ Request.prototype.start = function () {
     // `._connecting` was the old property which was made public in node v6.1.0
     var isConnecting = socket._connecting || socket.connecting
     if (self.timing) {
-      self.timings.socket = performance.now() - self.startTimeNow
+      self.timings.socket = now() - self.startTimeNow
 
       if (isConnecting) {
         var onLookupTiming = function () {
-          self.timings.lookup = performance.now() - self.startTimeNow
+          self.timings.lookup = now() - self.startTimeNow
         }
 
         var onConnectTiming = function () {
-          self.timings.connect = performance.now() - self.startTimeNow
+          self.timings.connect = now() - self.startTimeNow
 
           if (self.verbose) {
             socket.__SESSION_DATA.addresses = {
@@ -1078,7 +1078,7 @@ Request.prototype.start = function () {
         }
 
         var onSecureConnectTiming = function () {
-          self.timings.secureConnect = performance.now() - self.startTimeNow
+          self.timings.secureConnect = now() - self.startTimeNow
 
           if (self.verbose) {
             socket.__SESSION_DATA.tls = {
@@ -1257,13 +1257,13 @@ Request.prototype.onRequestResponse = function (response) {
   const requestSegmentStartTime = self.startTimeNow
 
   if (self.timing) {
-    self.timings.response = performance.now() - requestSegmentStartTime
+    self.timings.response = now() - requestSegmentStartTime
   }
 
   debug('onRequestResponse', self.uri.href, response.statusCode, response.headers)
   response.on('end', function () {
     if (self.timing) {
-    self.timings.end = performance.now() - requestSegmentStartTime
+      self.timings.end = now() - requestSegmentStartTime
       response.timingStart = self.startTime
       response.timingStartTimer = requestSegmentStartTime
 
