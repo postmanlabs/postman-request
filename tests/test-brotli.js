@@ -7,7 +7,7 @@ var tape = require('tape')
 var Buffer = require('safe-buffer').Buffer
 
 var testContent = 'compressible response content.\n'
-var testContentBrotli = zlib.brotliCompressSync(testContent);
+var testContentBrotli = zlib.brotliCompressSync(testContent)
 var testContentBig
 var testContentBigBrotli
 
