@@ -35,7 +35,6 @@ var Tunnel = require('./lib/tunnel').Tunnel
 var now = require('performance-now')
 var Buffer = require('safe-buffer').Buffer
 var inflate = require('./lib/inflate')
-var brotli = require('./lib/brotli')
 var urlParse = require('./lib/url-parse')
 var safeStringify = helpers.safeStringify
 var isReadStream = helpers.isReadStream
@@ -1417,7 +1416,7 @@ Request.prototype.onRequestResponse = function (response) {
         responseContent = inflate.createInflate(zlibOptions)
         response.pipe(downloadSizeTracker).pipe(responseContent)
       } else if (self.brotli && contentEncoding === 'br') {
-        responseContent = brotli.createBrotliDecompress()
+        responseContent = zlib.createBrotliDecompress()
         response.pipe(downloadSizeTracker).pipe(responseContent)
       } else {
         // Since previous versions didn't check for Content-Encoding header,

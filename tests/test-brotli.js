@@ -2,12 +2,12 @@
 
 var request = require('../index')
 var http = require('http')
+var zlib = require('zlib')
 var tape = require('tape')
 var Buffer = require('safe-buffer').Buffer
-var brotliCompress = require('brotli/compress')
 
 var testContent = 'compressible response content.\n'
-var testContentBrotli = Buffer.from(brotliCompress(Buffer.from(testContent)))
+var testContentBrotli = zlib.brotliCompressSync(testContent);
 var testContentBig
 var testContentBigBrotli
 
@@ -60,7 +60,7 @@ tape('setup', function (t) {
     testContentBig[i] = (x % 95) + 32
   }
 
-  testContentBigBrotli = brotliCompress(Buffer.from(testContentBig))
+  testContentBigBrotli = zlib.brotliCompressSync(Buffer.from(testContentBig))
 
   server.listen(0, function () {
     server.url = 'http://localhost:' + this.address().port
