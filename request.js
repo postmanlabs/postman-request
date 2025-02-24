@@ -39,9 +39,9 @@ var safeStringify = helpers.safeStringify
 var isReadStream = helpers.isReadStream
 var toBase64 = helpers.toBase64
 var defer = helpers.defer
-var now = performance.now // eslint-disable-line
 var copy = helpers.copy
 var version = helpers.version
+var now = helpers.now
 var SizeTrackerStream = helpers.SizeTrackerStream
 var globalCookieJar = cookies.jar()
 
