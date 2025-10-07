@@ -3,6 +3,7 @@
 var tls = require('tls')
 var http = require('http')
 var https = require('https')
+var fs = require('fs')
 var http2 = require('./lib/http2')
 var autohttp2 = require('./lib/autohttp')
 var url = require('url')
@@ -1055,6 +1056,14 @@ Request.prototype.start = function () {
       }
     }
 
+    if (self.keyLog) {
+      socket.on('keylog', (line) => {
+        // Checking twice here, because the socket maybe reused, so we don't want to append if the option is disabled for this execution
+        if (self.keyLog) {
+          fs.appendFileSync(self.keyLog, line)
+        }
+      })
+    }
     // `._connecting` was the old property which was made public in node v6.1.0
     var isConnecting = socket._connecting || socket.connecting
     if (self.timing) {

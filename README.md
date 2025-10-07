@@ -1029,7 +1029,7 @@ request.defaults({
   tunneling proxy.
 - `proxyHeaderExclusiveList` - a whitelist of headers to send
   exclusively to a tunneling proxy and not to destination.
-
+- `keyLog` - File path or descriptor to capture SSL session keys
 ---
 
 - `disableUrlEncoding` - if `true`, it will not use postman-url-encoder to encode URL. It means that if URL is given as object, it will be used as it is without doing any encoding. But if URL is given as string, it will be encoded by Node while converting it to object.
