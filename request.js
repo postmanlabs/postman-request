@@ -3,7 +3,7 @@
 var tls = require('tls')
 var http = require('http')
 var https = require('https')
-var fs = require('fs')
+var fsPromise = require('fs/promises')
 var http2 = require('./lib/http2')
 var autohttp2 = require('./lib/autohttp')
 var url = require('url')
@@ -1060,7 +1060,7 @@ Request.prototype.start = function () {
       socket.on('keylog', (line) => {
         // Checking twice here, because the socket maybe reused, so we don't want to append if the option is disabled for this execution
         if (self.keyLog) {
-          fs.appendFileSync(self.keyLog, line)
+          fsPromise.appendFile(self.keyLog, line)
         }
       })
     }
