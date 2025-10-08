@@ -1053,7 +1053,7 @@ Request.prototype.start = function () {
       // `lookup`, `connect` & `secureConnect` will not be triggered for a
       // reused socket and debug information will be lost for that request.
       var reusedSocket = Boolean(socket.__SESSION_ID && socket.__SESSION_DATA)
-      console.log(reusedSocket)
+
       if (!reusedSocket) {
         socket.__SESSION_ID = uuid()
         socket.__SESSION_DATA = {}
@@ -1073,6 +1073,9 @@ Request.prototype.start = function () {
     if (self.keyLog && !events.getEventListeners(socket, 'keylog').length) {
       socket.on('keylog', (line) => {
         fsPromise.appendFile(self.keyLog, line)
+          .catch(() => {
+            debug("Failed to append keylog to file: " + self.keyLog)
+          })
       })
     }
     // `._connecting` was the old property which was made public in node v6.1.0
