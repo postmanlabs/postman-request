@@ -1074,7 +1074,7 @@ Request.prototype.start = function () {
       socket.on('keylog', (line) => {
         fsPromise.appendFile(self.keyLog, line)
           .catch(() => {
-            debug("Failed to append keylog to file: " + self.keyLog)
+            debug('Failed to append keylog to file: ' + self.keyLog)
           })
       })
     }
