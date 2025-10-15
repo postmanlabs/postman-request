@@ -99,4 +99,3 @@ tape('cleanup', function (t) {
     t.end()
   })
 })
-
