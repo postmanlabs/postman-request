@@ -807,8 +807,8 @@ Request.prototype.getNewAgent = function ({agentIdleTimeout}) {
   if (self.secureOptions) {
     options.secureOptions = self.secureOptions
   }
-  if (self.keyLog) {
-    options.keyLog = self.keyLog
+  if (self.sslKeyLogFile) {
+    options.sslKeyLogFile = self.sslKeyLogFile
   }
   if (typeof self.rejectUnauthorized !== 'undefined') {
     options.rejectUnauthorized = self.rejectUnauthorized
@@ -911,11 +911,11 @@ Request.prototype.getNewAgent = function ({agentIdleTimeout}) {
       poolKey += options.secureOptions
     }
 
-    if (options.keyLog) {
+    if (options.sslKeyLogFile) {
       if (poolKey) {
         poolKey += ':'
       }
-      poolKey += options.keyLog
+      poolKey += options.sslKeyLogFile
     }
   }
 
@@ -1070,11 +1070,11 @@ Request.prototype.start = function () {
     // Attach event only once on the socket, so that data is not written multiple times
     // Since the agent key also includes keyLog, we are sure that a socket which is not supposed to be logging the
     // ssl content will not have a keylog listener set inadvertently, so we don't need to care about removing this listener
-    if (self.keyLog && !events.getEventListeners(socket, 'keylog').length) {
+    if (self.sslKeyLogFile && !events.getEventListeners(socket, 'keylog').length) {
       socket.on('keylog', (line) => {
-        fsPromise.appendFile(self.keyLog, line)
+        fsPromise.appendFile(self.sslKeyLogFile, line)
           .catch(() => {
-            debug('Failed to append keylog to file: ' + self.keyLog)
+            debug('Failed to append keylog to file: ' + self.sslKeyLogFile)
           })
       })
     }
