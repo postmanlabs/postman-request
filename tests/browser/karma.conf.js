@@ -39,6 +39,8 @@ module.exports = function (config) {
       debug: true,
       configure: function (bundle) {
         bundle.require('./tests/browser/socks-proxy-agent-stub.js', { expose: 'socks-proxy-agent' })
+
+        bundle.ignore('fs/promises')
       },
       transform: [istanbul({
         ignore: ['**/node_modules/**', '**/tests/**']

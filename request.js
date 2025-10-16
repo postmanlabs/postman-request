@@ -3,6 +3,8 @@
 var tls = require('tls')
 var http = require('http')
 var https = require('https')
+var fsPromise = require('fs/promises')
+var events = require('events')
 var http2 = require('./lib/http2')
 var autohttp2 = require('./lib/autohttp')
 var url = require('url')
@@ -805,6 +807,9 @@ Request.prototype.getNewAgent = function ({agentIdleTimeout}) {
   if (self.secureOptions) {
     options.secureOptions = self.secureOptions
   }
+  if (self.sslKeyLogFile) {
+    options.sslKeyLogFile = self.sslKeyLogFile
+  }
   if (typeof self.rejectUnauthorized !== 'undefined') {
     options.rejectUnauthorized = self.rejectUnauthorized
   }
@@ -904,6 +909,13 @@ Request.prototype.getNewAgent = function ({agentIdleTimeout}) {
         poolKey += ':'
       }
       poolKey += options.secureOptions
+    }
+
+    if (options.sslKeyLogFile) {
+      if (poolKey) {
+        poolKey += ':'
+      }
+      poolKey += options.sslKeyLogFile
     }
   }
 
@@ -1055,6 +1067,17 @@ Request.prototype.start = function () {
       }
     }
 
+    // Attach event only once on the socket, so that data is not written multiple times
+    // Since the agent key also includes keyLog, we are sure that a socket which is not supposed to be logging the
+    // ssl content will not have a keylog listener set inadvertently, so we don't need to care about removing this listener
+    if (self.sslKeyLogFile && !events.getEventListeners(socket, 'keylog').length) {
+      socket.on('keylog', (line) => {
+        fsPromise.appendFile(self.sslKeyLogFile, line)
+          .catch(() => {
+            debug('Failed to append keylog to file: ' + self.sslKeyLogFile)
+          })
+      })
+    }
     // `._connecting` was the old property which was made public in node v6.1.0
     var isConnecting = socket._connecting || socket.connecting
     if (self.timing) {

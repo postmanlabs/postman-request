@@ -922,7 +922,7 @@ The first argument can be either a `url` or an `options` object. The only requir
 - `baseUrl` - fully qualified uri string used as the base url. Most useful with `request.defaults`, for example when you want to do many requests to the same domain. If `baseUrl` is `https://example.com/api/`, then requesting `/end/point?test=true` will fetch `https://example.com/api/end/point?test=true`. When `baseUrl` is given, `uri` must also be a string.
 - `method` - http method (default: `"GET"`)
 - `headers` - http headers (default: `{}`)
-- `protocolVersion` - HTTP Protocol Version to use. Can be one of `auto|http1|http2` (default: `http1`). Is overridden to `http1` when sending a http request, using proxy, or running in a browser environment. 
+- `protocolVersion` - HTTP Protocol Version to use. Can be one of `auto|http1|http2` (default: `http1`). Is overridden to `http1` when sending a http request, using proxy, or running in a browser environment.
 ---
 
 - `qs` - object containing querystring values to be appended to the `uri`
@@ -1029,7 +1029,7 @@ request.defaults({
   tunneling proxy.
 - `proxyHeaderExclusiveList` - a whitelist of headers to send
   exclusively to a tunneling proxy and not to destination.
-
+- `sslKeyLogFile` - File path to capture SSL session keys
 ---
 
 - `disableUrlEncoding` - if `true`, it will not use postman-url-encoder to encode URL. It means that if URL is given as object, it will be used as it is without doing any encoding. But if URL is given as string, it will be encoded by Node while converting it to object.
