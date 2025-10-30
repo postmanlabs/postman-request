@@ -378,7 +378,7 @@ Request.prototype.init = function (options) {
   }
 
   // Support Unix Sockets
-  if (self.uri.host === 'unix') {
+  if (self.uri.host === 'unix' || self.uri.host === 'unix:') {
     self.enableUnixSocket()
   }
 
