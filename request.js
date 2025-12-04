@@ -1265,7 +1265,7 @@ Request.prototype.onRequestError = function (error) {
   }
   if (error.res && error.res.statusCode && error.res.statusMessage) {
     // Handle the response to populate all the right properties for the consumer to pick up
-    self.onRequestResponse.bind(self)(error.res);
+    self.onRequestResponse(error.res)
   }
   self.clearTimeout()
   self.emit('error', error)
