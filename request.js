@@ -1263,6 +1263,10 @@ Request.prototype.onRequestError = function (error) {
     self.req.end()
     return
   }
+  if (error.res && error.res.statusCode && error.res.statusMessage) {
+    // Handle the response to populate all the right properties for the consumer to pick up
+    self.onRequestResponse(error.res)
+  }
   self.clearTimeout()
   self.emit('error', error)
 }
