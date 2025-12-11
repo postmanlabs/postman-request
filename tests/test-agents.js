@@ -8,13 +8,12 @@ var tape = require('tape')
 tape('http', function (t) {
   var r = request({
     uri: 'http://postman-echo.com/get',
-    followRedirect: false,
     agents: {
       http: new http.Agent({option1: true})
     }
   }, function (err, res) {
     t.equal(err, null)
-    t.equal(res.statusCode, 301)
+    t.equal(res.statusCode, 200)
     t.ok(r.agent instanceof http.Agent, 'is http.Agent')
     t.equal(r.agent.options.option1, true)
     t.end()
@@ -24,7 +23,6 @@ tape('http', function (t) {
 tape('http.agentClass + http.agentOptions', function (t) {
   var r = request({
     uri: 'http://postman-echo.com/get',
-    followRedirect: false,
     agents: {
       http: {
         agentClass: http.Agent,
@@ -33,7 +31,7 @@ tape('http.agentClass + http.agentOptions', function (t) {
     }
   }, function (err, res) {
     t.equal(err, null)
-    t.equal(res.statusCode, 301)
+    t.equal(res.statusCode, 200)
     t.ok(r.agent instanceof http.Agent, 'is http.Agent')
     t.equal(r.agent.options.option2, true)
     t.equal(Object.keys(r.agent.sockets).length, 1, '1 socket name')
