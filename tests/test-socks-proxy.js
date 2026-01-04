@@ -41,7 +41,8 @@ function createTestServers (callback) {
     }).listen(0, () => {
       const socksPort = socksServer.address().port
       socksServer.clearConnectionLog()
-      callback(null, {
+      /* eslint-disable-next-line n/no-callback-literal */
+      callback({
         targetServer,
         targetPort,
         socksServer,
@@ -61,7 +62,8 @@ function createAuthTestServers (auth, callback) {
     }).listen(0, () => {
       const socksPort = socksServer.address().port
       socksServer.clearConnectionLog()
-      callback(null, {
+      /* eslint-disable-next-line n/no-callback-literal */
+      callback({
         targetServer,
         targetPort,
         socksServer,

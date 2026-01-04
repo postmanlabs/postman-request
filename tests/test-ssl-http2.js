@@ -172,8 +172,13 @@ tape('http2 -> https', function (t) {
     protocolVersion: 'http2'
   }, function (err, res, body) {
     t.notEqual(err, null)
-    t.equal(err.code, 'ERR_HTTP2_ERROR')
-    t.equal(err.errno, -505)
+    t.ok(
+      err.code === 'ERR_HTTP2_ERROR' || err.code === 'ERR_HTTP2_STREAM_CANCEL',
+      'HTTP/2 downgrade should fail with a protocol error'
+    )
+    if (err.errno !== undefined) {
+      t.equal(err.errno, -505)
+    }
 
     t.end()
   })

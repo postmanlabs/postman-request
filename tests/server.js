@@ -54,8 +54,8 @@ exports.createEchoServer = function () {
 exports.createSSLServer = function (opts) {
   let i
   const options = {
-    key: path.join(__dirname, 'ssl', 'test.key'),
-    cert: path.join(__dirname, 'ssl', 'test.crt')
+    key: path.join(__dirname, 'ssl', 'ca', 'localhost.key'),
+    cert: path.join(__dirname, 'ssl', 'ca', 'localhost.crt')
   }
   if (opts) {
     for (i in opts) {
@@ -161,8 +161,8 @@ exports.createChunkResponse = function (chunks, contentType) {
 exports.createHttp2Server = function (opts) {
   let i
   const options = {
-    key: path.join(__dirname, 'ssl', 'test.key'),
-    cert: path.join(__dirname, 'ssl', 'test.crt')
+    key: path.join(__dirname, 'ssl', 'ca', 'localhost.key'),
+    cert: path.join(__dirname, 'ssl', 'ca', 'localhost.crt')
   }
   if (opts) {
     for (i in opts) {

@@ -49,6 +49,34 @@ const SizeTrackerStream = helpers.SizeTrackerStream
 const globalCookieJar = cookies.jar()
 
 const globalPool = {}
+function prunePool (pool) {
+  if (!pool) {
+    return
+  }
+
+  Object.keys(pool).forEach(function (key) {
+    const agent = pool[key]
+    const isKeepAliveAgent = agent && agent.keepAlive && !agent.destroyed
+    if (isKeepAliveAgent) {
+      return
+    }
+    const hasRequests = agent && agent.requests && Object.keys(agent.requests).some(function (name) {
+      return agent.requests[name] && agent.requests[name].length
+    })
+    const hasSockets = agent && agent.sockets && Object.keys(agent.sockets).some(function (name) {
+      return agent.sockets[name] && agent.sockets[name].length
+    })
+    const hasFreeSockets = agent && agent.freeSockets && Object.keys(agent.freeSockets).some(function (name) {
+      return agent.freeSockets[name] && agent.freeSockets[name].length
+    })
+
+    // If we can inspect the agent state and it has no active sockets or requests,
+    // drop it so future requests don't reuse stale configuration.
+    if ((agent.requests || agent.sockets || agent.freeSockets) && !(hasRequests || hasSockets || hasFreeSockets)) {
+      delete pool[key]
+    }
+  })
+}
 
 function filterForNonReserved (reserved, options) {
   // Filter out properties that are not reserved.
@@ -234,6 +262,7 @@ function Request (options) {
 }
 
 util.inherits(Request, stream.Stream)
+Request.globalPool = globalPool
 
 // Debugging
 Request.debug = process.env.NODE_DEBUG && /\brequest\b/.test(process.env.NODE_DEBUG)
@@ -255,6 +284,7 @@ Request.prototype.init = function (options) {
     options = {}
   }
   self.headers = self.headers ? copy(self.headers) : {}
+  self._explicitAgent = Boolean(options.agent || options.agents)
 
   // for this request (or redirect) store its debug logs in `_reqResInfo` and
   // store its reference in `_debug` which holds debug logs of every request
@@ -788,6 +818,7 @@ Request.prototype.init = function (options) {
 Request.prototype.getNewAgent = function ({ agentIdleTimeout }) {
   const self = this
   const Agent = self.agentClass
+  prunePool(self.pool)
   const options = {}
   if (self.agentOptions) {
     for (const i in self.agentOptions) {
@@ -1004,8 +1035,43 @@ Request.prototype.start = function () {
   // consistency with node versions before v6.8.0
   delete reqOptions.timeout
 
+  // Adapt user-provided lookup functions to newer Node.js resolver behavior
+  // that may request an array of addresses via `options.all = true`.
+  if (typeof reqOptions.lookup === 'function') {
+    const userLookup = reqOptions.lookup
+    reqOptions.lookup = function (hostname, options, cb) {
+      const wrappedCb = function (err, address, family) {
+        if (!options || !options.all) {
+          return cb(err, address, family)
+        }
+
+        if (err) {
+          return cb(err)
+        }
+
+        if (Array.isArray(address)) {
+          return cb(null, address)
+        }
+
+        const resolvedFamily = family || options.family || 4
+        return cb(null, [{ address, family: resolvedFamily }])
+      }
+
+      return userLookup(hostname, options, wrappedCb)
+    }
+  }
+
   try {
     self.req = self.httpModule.request(reqOptions)
+
+    // Unless the caller explicitly opts into keep-alive, ensure connections
+    // are closed after each request to avoid leaking agents across tests/runs.
+    const hasExplicitConnectionHeader = self.hasHeader('connection')
+    const requestedKeepAlive = (self.agentOptions && self.agentOptions.keepAlive) || self.forever ||
+      (self._explicitAgent && self.agent && self.agent.keepAlive)
+    if (!hasExplicitConnectionHeader && !requestedKeepAlive) {
+      self.req.shouldKeepAlive = false
+    }
 
     // Remove blacklisted headers from the request instance.
     // @note don't check for `hasHeader` because headers like `connection`,
