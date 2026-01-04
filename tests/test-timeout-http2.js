@@ -1,5 +1,5 @@
 'use strict'
-var destroyable = require('server-destroy')
+const destroyable = require('server-destroy')
 
 function checkErrCode (t, err) {
   t.notEqual(err, null)
@@ -8,10 +8,10 @@ function checkErrCode (t, err) {
 }
 
 function checkEventHandlers (t, socket) {
-  var connectListeners = socket.listeners('connect')
-  var found = false
-  for (var i = 0; i < connectListeners.length; ++i) {
-    var fn = connectListeners[i]
+  const connectListeners = socket.listeners('connect')
+  let found = false
+  for (let i = 0; i < connectListeners.length; ++i) {
+    const fn = connectListeners[i]
     if (typeof fn === 'function' && fn.name === 'onReqSockConnect') {
       found = true
       break
@@ -20,14 +20,14 @@ function checkEventHandlers (t, socket) {
   t.ok(!found, 'Connect listener should not exist')
 }
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
 
-var s = server.createHttp2Server()
+const s = server.createHttp2Server()
 destroyable(s)
 
-var streams = []
+const streams = []
 // Request that waits for 200ms
 s.on('/timeout', function (req, res) {
   streams.push(req.stream)
@@ -35,7 +35,7 @@ s.on('/timeout', function (req, res) {
     if (res.stream.closed) {
       return
     }
-    res.writeHead(200, {'content-type': 'text/plain'})
+    res.writeHead(200, { 'content-type': 'text/plain' })
     res.write('waited')
     res.end()
   }, 200)
@@ -48,7 +48,7 @@ tape('setup', function (t) {
 })
 
 tape('should timeout', function (t) {
-  var shouldTimeout = {
+  const shouldTimeout = {
     url: s.url + '/timeout',
     timeout: 100,
     strictSSL: false,
@@ -62,7 +62,7 @@ tape('should timeout', function (t) {
 })
 
 tape('should set connect to false', function (t) {
-  var shouldTimeout = {
+  const shouldTimeout = {
     url: s.url + '/timeout',
     timeout: 100,
     strictSSL: false,
@@ -79,14 +79,14 @@ tape('should set connect to false', function (t) {
 tape('should timeout with events', function (t) {
   t.plan(3)
 
-  var shouldTimeoutWithEvents = {
+  const shouldTimeoutWithEvents = {
     url: s.url + '/timeout',
     timeout: 100,
     strictSSL: false,
     protocolVersion: 'http2'
   }
 
-  var eventsEmitted = 0
+  let eventsEmitted = 0
   request(shouldTimeoutWithEvents)
     .on('error', function (err) {
       eventsEmitted++
@@ -96,14 +96,14 @@ tape('should timeout with events', function (t) {
 })
 
 tape('should not timeout', function (t) {
-  var shouldntTimeout = {
+  const shouldntTimeout = {
     url: s.url + '/timeout',
     timeout: 1200,
     strictSSL: false,
     protocolVersion: 'http2'
   }
 
-  var socket
+  let socket
   request(shouldntTimeout, function (err, res, body) {
     t.equal(err, null)
     t.equal(body, 'waited')
@@ -115,7 +115,7 @@ tape('should not timeout', function (t) {
 })
 
 tape('no timeout', function (t) {
-  var noTimeout = {
+  const noTimeout = {
     url: s.url + '/timeout',
     strictSSL: false,
     protocolVersion: 'http2'
@@ -129,7 +129,7 @@ tape('no timeout', function (t) {
 })
 
 tape('negative timeout', function (t) { // should be treated a zero or the minimum delay
-  var negativeTimeout = {
+  const negativeTimeout = {
     url: s.url + '/timeout',
     timeout: -1000,
     strictSSL: false,
@@ -147,7 +147,7 @@ tape('negative timeout', function (t) { // should be treated a zero or the minim
 })
 
 tape('float timeout', function (t) { // should be rounded by setTimeout anyway
-  var floatTimeout = {
+  const floatTimeout = {
     url: s.url + '/timeout',
     timeout: 100.76,
     strictSSL: false,

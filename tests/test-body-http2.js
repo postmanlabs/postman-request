@@ -1,13 +1,13 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
-var path = require('path')
-var fs = require('fs')
-var destroyable = require('server-destroy')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
+const path = require('path')
+const fs = require('fs')
+const destroyable = require('server-destroy')
 
-var s = server.createHttp2Server()
+const s = server.createHttp2Server()
 destroyable(s)
 
 tape('setup', function (t) {
@@ -243,7 +243,7 @@ tape('typed array', function (t) {
     req.pipe(res)
   })
 
-  var data = new Uint8Array([1, 2, 3])
+  const data = new Uint8Array([1, 2, 3])
   request(
     {
       uri: 'https://localhost:' + s.port,

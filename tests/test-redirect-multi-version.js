@@ -1,11 +1,11 @@
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
-var destroyable = require('server-destroy')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
+const destroyable = require('server-destroy')
 
-var plainServer = server.createServer()
-var httpsServer = server.createSSLServer()
-var http2Server = server.createHttp2Server()
+const plainServer = server.createServer()
+const httpsServer = server.createSSLServer()
+const http2Server = server.createHttp2Server()
 
 destroyable(plainServer)
 destroyable(httpsServer)
@@ -18,16 +18,16 @@ tape('setup', function (t) {
       res.end('plain')
     })
     plainServer.on('/redir', function (req, res) {
-      res.writeHead(301, { 'location': 'http://localhost:' + plainServer.port + '/' })
+      res.writeHead(301, { location: 'http://localhost:' + plainServer.port + '/' })
       res.end()
     })
     plainServer.on('/redir/https', function (req, res) {
-      res.writeHead(301, { 'location': 'https://localhost:' + httpsServer.port + '/' })
+      res.writeHead(301, { location: 'https://localhost:' + httpsServer.port + '/' })
       res.end()
     })
 
     plainServer.on('/redir/http2', function (req, res) {
-      res.writeHead(301, { 'location': 'https://localhost:' + http2Server.port + '/' })
+      res.writeHead(301, { location: 'https://localhost:' + http2Server.port + '/' })
       res.end()
     })
 
@@ -37,16 +37,16 @@ tape('setup', function (t) {
         res.end('https')
       })
       httpsServer.on('/redir', function (req, res) {
-        res.writeHead(301, { 'location': 'http://localhost:' + plainServer.port + '/' })
+        res.writeHead(301, { location: 'http://localhost:' + plainServer.port + '/' })
         res.end()
       })
       httpsServer.on('/redir/https', function (req, res) {
-        res.writeHead(301, { 'location': 'https://localhost:' + httpsServer.port + '/' })
+        res.writeHead(301, { location: 'https://localhost:' + httpsServer.port + '/' })
         res.end()
       })
 
       httpsServer.on('/redir/http2', function (req, res) {
-        res.writeHead(301, { 'location': 'https://localhost:' + http2Server.port + '/' })
+        res.writeHead(301, { location: 'https://localhost:' + http2Server.port + '/' })
         res.end()
       })
 
@@ -56,16 +56,16 @@ tape('setup', function (t) {
           res.end('http2')
         })
         http2Server.on('/redir', function (req, res) {
-          res.writeHead(301, { 'location': 'http://localhost:' + plainServer.port + '/' })
+          res.writeHead(301, { location: 'http://localhost:' + plainServer.port + '/' })
           res.end()
         })
         http2Server.on('/redir/https', function (req, res) {
-          res.writeHead(301, { 'location': 'https://localhost:' + httpsServer.port + '/' })
+          res.writeHead(301, { location: 'https://localhost:' + httpsServer.port + '/' })
           res.end()
         })
 
         http2Server.on('/redir/http2', function (req, res) {
-          res.writeHead(301, { 'location': 'https://localhost:' + http2Server.port + '/' })
+          res.writeHead(301, { location: 'https://localhost:' + http2Server.port + '/' })
           res.end()
         })
         t.end()
@@ -75,7 +75,7 @@ tape('setup', function (t) {
 })
 
 tape('HTTP to HTTP2', function (t) {
-  var options = { strictSSL: false, protocolVersion: 'auto' }
+  const options = { strictSSL: false, protocolVersion: 'auto' }
   request('http://localhost:' + plainServer.port + '/redir/http2', options, function (err, res, body) {
     t.equal(err, null)
     t.equal(body, 'http2')
@@ -86,7 +86,7 @@ tape('HTTP to HTTP2', function (t) {
 })
 
 tape('HTTPS to HTTP2', function (t) {
-  var options = { strictSSL: false, protocolVersion: 'auto' }
+  const options = { strictSSL: false, protocolVersion: 'auto' }
   request('https://localhost:' + httpsServer.port + '/redir/http2', options, function (err, res, body) {
     t.equal(err, null)
     t.equal(body, 'http2')
@@ -97,7 +97,7 @@ tape('HTTPS to HTTP2', function (t) {
 })
 
 tape('HTTP2 to HTTP', function (t) {
-  var options = { strictSSL: false, protocolVersion: 'auto' }
+  const options = { strictSSL: false, protocolVersion: 'auto' }
   request('https://localhost:' + http2Server.port + '/redir', options, function (err, res, body) {
     t.equal(err, null)
     t.equal(body, 'plain')
@@ -108,7 +108,7 @@ tape('HTTP2 to HTTP', function (t) {
 })
 
 tape('HTTP2 to HTTPS', function (t) {
-  var options = { strictSSL: false, protocolVersion: 'auto' }
+  const options = { strictSSL: false, protocolVersion: 'auto' }
   request('https://localhost:' + http2Server.port + '/redir/https', options, function (err, res, body) {
     t.equal(err, null)
     t.equal(body, 'https')

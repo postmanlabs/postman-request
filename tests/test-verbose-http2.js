@@ -1,15 +1,15 @@
 'use strict'
 
-var assert = require('assert')
-var tape = require('tape')
-var destroyable = require('server-destroy')
-var zlib = require('zlib')
+const assert = require('assert')
+const tape = require('tape')
+const destroyable = require('server-destroy')
+const zlib = require('zlib')
 
-var server = require('./server')
-var request = require('../index').defaults({protocolVersion: 'http2'})
+const server = require('./server')
+const request = require('../index').defaults({ protocolVersion: 'http2' })
 
-var plainServer = server.createServer()
-var http2Server = server.createHttp2Server()
+const plainServer = server.createServer()
+const http2Server = server.createHttp2Server()
 
 destroyable(plainServer)
 destroyable(http2Server)
@@ -21,7 +21,7 @@ tape('setup', function (t) {
       res.end('plain')
     })
     plainServer.on('/redir', function (req, res) {
-      res.writeHead(301, { 'location': 'https://localhost:' + http2Server.port + '/' })
+      res.writeHead(301, { location: 'https://localhost:' + http2Server.port + '/' })
       res.end()
     })
 
@@ -31,7 +31,7 @@ tape('setup', function (t) {
         res.end('https')
       })
       http2Server.on('/redir', function (req, res) {
-        res.writeHead(301, { 'location': 'http://localhost:' + plainServer.port + '/' })
+        res.writeHead(301, { location: 'http://localhost:' + plainServer.port + '/' })
         res.end()
       })
       http2Server.on('/gzip', function (req, res) {
@@ -48,7 +48,7 @@ tape('setup', function (t) {
 })
 
 tape('verbose=false [default]', function (t) {
-  var options = {
+  const options = {
     protocolVersion: 'http2'
   }
 
@@ -67,7 +67,7 @@ tape('verbose=false [default]', function (t) {
 })
 
 tape('HTTP: verbose=true', function (t) {
-  var options = { verbose: true, time: false, protocolVersion: 'http2' } // verbose overrides timing setting
+  const options = { verbose: true, time: false, protocolVersion: 'http2' } // verbose overrides timing setting
 
   request('http://localhost:' + plainServer.port + '/', options, function (err, res, body, debug) {
     t.equal(err, null)
@@ -81,7 +81,7 @@ tape('HTTP: verbose=true', function (t) {
     t.deepEqual(Object.keys(debug[0].request), ['method', 'href', 'headers', 'proxy', 'httpVersion'])
 
     t.notEqual(debug[0].request.headers.length, 0)
-    t.deepEqual(debug[0].request.headers[0], {key: 'Host', value: 'localhost:' + plainServer.port})
+    t.deepEqual(debug[0].request.headers[0], { key: 'Host', value: 'localhost:' + plainServer.port })
 
     t.deepEqual(Object.keys(debug[0].session), ['id', 'reused', 'data'])
     t.deepEqual(Object.keys(debug[0].session.data), ['addresses'])
@@ -97,7 +97,7 @@ tape('HTTP: verbose=true', function (t) {
 })
 
 tape('HTTP: redirect(HTTPS) + verbose=true', function (t) {
-  var options = {
+  const options = {
     verbose: true,
     strictSSL: false,
     protocolVersion: 'http2'
@@ -132,7 +132,7 @@ tape('HTTP: redirect(HTTPS) + verbose=true', function (t) {
 })
 
 tape('HTTPS: verbose=true', function (t) {
-  var options = {
+  const options = {
     verbose: true,
     strictSSL: false,
     time: false, // verbose overrides timing setting
@@ -160,14 +160,14 @@ tape('HTTPS: verbose=true', function (t) {
 })
 
 tape('HTTPS Gzip: verbose=true', function (t) {
-  var options = {
+  const options = {
     verbose: true,
     strictSSL: false,
     time: false, // verbose overrides timing setting
     protocolVersion: 'http2'
   }
 
-  request('https://localhost:' + http2Server.port + '/gzip', {...options, gzip: true}, function (err, res, body, debug) {
+  request('https://localhost:' + http2Server.port + '/gzip', { ...options, gzip: true }, function (err, res, body, debug) {
     t.equal(err, null)
     t.equal(body, 'gzip')
     t.equal(Array.isArray(debug), true)
@@ -189,7 +189,7 @@ tape('HTTPS Gzip: verbose=true', function (t) {
 })
 
 tape('HTTPS: redirect(HTTP) + verbose=true', function (t) {
-  var options = {
+  const options = {
     verbose: true,
     strictSSL: false,
     protocolVersion: 'http2'

@@ -1,11 +1,11 @@
-var request = require('../index')
-var net = require('net')
-var tape = require('tape')
+const request = require('../index')
+const net = require('net')
+const tape = require('tape')
 
 // Creating server using `net` as `writeHead` function of `http` module throws
 // when the headers contains character outside the printable ASCII range
 // Refer: https://github.com/nodejs/node/blob/v12.0.0/lib/_http_server.js#L256
-var rawEchoServer = net.createServer(function (socket) {
+const rawEchoServer = net.createServer(function (socket) {
   socket.on('data', function (chunk) {
     socket.end('HTTP/1.1 200 Работает нормально\r\n\r\n')
   })

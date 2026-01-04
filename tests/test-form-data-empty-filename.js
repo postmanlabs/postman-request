@@ -1,12 +1,12 @@
 'use strict'
 
-var http = require('http')
-var request = require('../')
-var tape = require('tape')
-var destroyable = require('server-destroy')
+const http = require('http')
+const request = require('../')
+const tape = require('tape')
+const destroyable = require('server-destroy')
 
-var server = http.createServer(function (req, res) {
-  var data = ''
+const server = http.createServer(function (req, res) {
+  let data = ''
 
   req.on('data', function (d) {
     data += d
@@ -45,7 +45,7 @@ tape('with empty filename', function (t) {
       }
     }
   }, function (err, res, body) {
-    var req = JSON.parse(body)
+    const req = JSON.parse(body)
 
     t.equal(err, null)
     t.equal(res.statusCode, 200)

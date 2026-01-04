@@ -1,20 +1,20 @@
 'use strict'
 
-var http = require('http')
-var path = require('path')
-var request = require('../')
-var fs = require('fs')
-var tape = require('tape')
-var destroyable = require('server-destroy')
+const http = require('http')
+const path = require('path')
+const request = require('../')
+const fs = require('fs')
+const tape = require('tape')
+const destroyable = require('server-destroy')
 
 function runTest (t, options) {
-  var localFile = path.join(__dirname, 'googledoodle.jpg')
-  var multipartFormData = {}
-  var redirects = 0
+  const localFile = path.join(__dirname, 'googledoodle.jpg')
+  let multipartFormData = {}
+  let redirects = 0
 
-  var server = http.createServer(function (req, res) {
+  const server = http.createServer(function (req, res) {
     if (req.url === '/redirect') {
-      res.writeHead(options.responseCode, {location: options.location})
+      res.writeHead(options.responseCode, { location: options.location })
       res.end()
       return
     }
@@ -23,7 +23,7 @@ function runTest (t, options) {
       .test(req.headers['content-type']))
 
     // temp workaround
-    var data = ''
+    let data = ''
 
     req.on('data', function (d) {
       data += d
@@ -70,7 +70,7 @@ function runTest (t, options) {
 
   // this will cause servers to listen on a random port
   server.listen(0, function () {
-    var url = 'http://localhost:' + this.address().port
+    const url = 'http://localhost:' + this.address().port
     // both together have flaky behavior because of the following issue:
     // https://github.com/request/request/issues/887#issuecomment-347050137
     if (options.batch) {
@@ -100,7 +100,7 @@ function runTest (t, options) {
       t.equal(err, null)
       t.equal(redirects, 1)
       t.equal(res.statusCode, 200)
-      t.deepEqual(body, options.json ? {status: 'done'} : 'done')
+      t.deepEqual(body, options.json ? { status: 'done' } : 'done')
       server.destroy(function () {
         t.end()
       })
@@ -111,17 +111,17 @@ function runTest (t, options) {
 }
 
 tape('multipart formData + 307 redirect', function (t) {
-  runTest(t, {url: '/redirect', responseCode: 307, location: '/upload'})
+  runTest(t, { url: '/redirect', responseCode: 307, location: '/upload' })
 })
 
 tape('multipart formData + 307 redirect + batch', function (t) {
-  runTest(t, {url: '/redirect', responseCode: 307, location: '/upload', batch: true})
+  runTest(t, { url: '/redirect', responseCode: 307, location: '/upload', batch: true })
 })
 
 tape('multipart formData + 308 redirect', function (t) {
-  runTest(t, {url: '/redirect', responseCode: 308, location: '/upload'})
+  runTest(t, { url: '/redirect', responseCode: 308, location: '/upload' })
 })
 
 tape('multipart formData + 308 redirect + preserveOrder', function (t) {
-  runTest(t, {url: '/redirect', responseCode: 308, location: '/upload', preserveOrder: true})
+  runTest(t, { url: '/redirect', responseCode: 308, location: '/upload', preserveOrder: true })
 })

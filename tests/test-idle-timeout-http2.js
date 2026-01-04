@@ -1,9 +1,9 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
-var destroyable = require('server-destroy')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
+const destroyable = require('server-destroy')
 
 function checkErrCode (t, err) {
   t.notEqual(err, null)
@@ -11,9 +11,9 @@ function checkErrCode (t, err) {
     'Error ETIMEDOUT or ESOCKETTIMEDOUT')
 }
 
-var s = server.createHttp2Server()
+const s = server.createHttp2Server()
 
-var streams = []
+const streams = []
 s.on('/', function (req, res) {
   streams.push(req.stream)
   res.writeHead(200, { 'content-type': 'text/plain' })
@@ -29,7 +29,7 @@ tape('setup', function (t) {
 })
 
 tape('should reuse the same socket', function (t) {
-  var shouldTimeout = {
+  const shouldTimeout = {
     url: s.url + '/',
     pool: {},
     protocolVersion: 'http2',
@@ -37,7 +37,7 @@ tape('should reuse the same socket', function (t) {
     agentOptions: {}
   }
 
-  var socket
+  let socket
   request(shouldTimeout, function (err) {
     t.equal(err, null)
     request(shouldTimeout, function (err) {
@@ -54,7 +54,7 @@ tape('should reuse the same socket', function (t) {
 })
 
 tape('create a new socket when idle timeout is less than keep alive and time b/w requests is greater than idle timeout', function (t) {
-  var shouldTimeout = {
+  const shouldTimeout = {
     url: s.url + '/',
     pool: {},
     protocolVersion: 'http2',
@@ -64,7 +64,7 @@ tape('create a new socket when idle timeout is less than keep alive and time b/w
     }
   }
 
-  var socket
+  let socket
   request(shouldTimeout, function (err) {
     t.equal(err, null)
     setTimeout(function () {
@@ -86,7 +86,7 @@ tape('create a new socket when idle timeout is less than keep alive and time b/w
 })
 
 tape('create a new socket when idle timeout is greater than keep alive and time b/w requests is greater than idle timeout', function (t) {
-  var shouldTimeout = {
+  const shouldTimeout = {
     url: s.url + '/',
     pool: {},
     protocolVersion: 'http2',
@@ -96,7 +96,7 @@ tape('create a new socket when idle timeout is greater than keep alive and time 
     }
   }
 
-  var socket
+  let socket
   request(shouldTimeout, function (err) {
     t.equal(err, null)
     setTimeout(function () {

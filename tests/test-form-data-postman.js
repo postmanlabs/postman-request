@@ -1,12 +1,12 @@
 'use strict'
 
-var request = require('../index')
-var server = require('./server')
-var tape = require('tape')
+const request = require('../index')
+const server = require('./server')
+const tape = require('tape')
 
-var s = server.createServer()
+const s = server.createServer()
 
-var path = '/upload'
+const path = '/upload'
 
 s.on(path, function (req, res) {
   res.writeHead(200, {
@@ -27,7 +27,7 @@ tape.skip('large formData should return an error', function (t) {
   request({
     uri: s.url + path,
     method: 'post',
-    formData: {foo: new Array(3e4).fill('bar')}
+    formData: { foo: new Array(3e4).fill('bar') }
   }, function (err) {
     t.notEqual(err, null)
     t.equal(typeof err, 'object')

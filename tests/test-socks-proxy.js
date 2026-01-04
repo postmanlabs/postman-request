@@ -41,7 +41,7 @@ function createTestServers (callback) {
     }).listen(0, () => {
       const socksPort = socksServer.address().port
       socksServer.clearConnectionLog()
-      callback({
+      callback(null, {
         targetServer,
         targetPort,
         socksServer,
@@ -61,7 +61,7 @@ function createAuthTestServers (auth, callback) {
     }).listen(0, () => {
       const socksPort = socksServer.address().port
       socksServer.clearConnectionLog()
-      callback({
+      callback(null, {
         targetServer,
         targetPort,
         socksServer,
@@ -111,11 +111,11 @@ tape('Direct request (no proxy) should create NO SOCKS connections', function (t
 
 tape('SOCKS5 proxy without authentication', function (t) {
   createTestServers(({
-        targetServer,
-        targetPort,
-        socksServer,
-        socksPort
-    }) => {
+    targetServer,
+    targetPort,
+    socksServer,
+    socksPort
+  }) => {
     request({
       url: `http://127.0.0.1:${targetPort}/test`,
       proxy: `socks5://127.0.0.1:${socksPort}`,
@@ -147,11 +147,11 @@ tape('SOCKS5 proxy with URL authentication', function (t) {
     username: 'testuser',
     password: 'testpass'
   }, ({
-        targetServer,
-        targetPort,
-        socksServer,
-        socksPort
-    }) => {
+    targetServer,
+    targetPort,
+    socksServer,
+    socksPort
+  }) => {
     request({
       url: `http://127.0.0.1:${targetPort}/auth-test`,
       proxy: `socks5://testuser:testpass@127.0.0.1:${socksPort}`,
@@ -182,12 +182,13 @@ tape('SOCKS5 proxy with proxy.auth property', function (t) {
     username: 'propuser',
     password: 'proppass'
   }, ({
-        targetServer,
-        targetPort,
-        socksServer,
-        socksPort
-    }) => {
-        // Test proxy.auth property by using URL without auth and setting proxy.auth separately
+    targetServer,
+    targetPort,
+    socksServer,
+    socksPort
+  }) => {
+    // Test proxy.auth property by using URL without auth and setting proxy.auth separately
+    /* eslint-disable-next-line n/no-deprecated-api */
     const proxyUrl = url.parse(`socks5://127.0.0.1:${socksPort}`)
     proxyUrl.auth = 'propuser:proppass'
 
@@ -221,11 +222,11 @@ tape('SOCKS5 proxy authentication failure', function (t) {
     username: 'correct',
     password: 'password'
   }, ({
-        targetServer,
-        targetPort,
-        socksServer,
-        socksPort
-    }) => {
+    targetServer,
+    targetPort,
+    socksServer,
+    socksPort
+  }) => {
     request({
       url: `http://127.0.0.1:${targetPort}/should-fail`,
       proxy: `socks5://wrong:credentials@127.0.0.1:${socksPort}`,
@@ -242,11 +243,11 @@ tape('SOCKS5 proxy authentication failure', function (t) {
 
 tape('SOCKS4 proxy support', function (t) {
   createTestServers(({
-        targetServer,
-        targetPort,
-        socksServer,
-        socksPort
-    }) => {
+    targetServer,
+    targetPort,
+    socksServer,
+    socksPort
+  }) => {
     request({
       url: `http://127.0.0.1:${targetPort}/socks4-test`,
       proxy: `socks4://127.0.0.1:${socksPort}`,
@@ -274,11 +275,11 @@ tape('SOCKS4 proxy support', function (t) {
 
 tape('SOCKS4a proxy with hostname resolution', function (t) {
   createTestServers(({
-        targetServer,
-        targetPort,
-        socksServer,
-        socksPort
-    }) => {
+    targetServer,
+    targetPort,
+    socksServer,
+    socksPort
+  }) => {
     request({
       url: `http://127.0.0.1:${targetPort}/socks4a-test`,
       proxy: `socks4a://127.0.0.1:${socksPort}`,
@@ -306,11 +307,11 @@ tape('SOCKS4a proxy with hostname resolution', function (t) {
 
 tape('SOCKS5h proxy with hostname resolution', function (t) {
   createTestServers(({
-        targetServer,
-        targetPort,
-        socksServer,
-        socksPort
-    }) => {
+    targetServer,
+    targetPort,
+    socksServer,
+    socksPort
+  }) => {
     request({
       url: `http://127.0.0.1:${targetPort}/socks5h-test`,
       proxy: `socks5h://127.0.0.1:${socksPort}`,
@@ -338,11 +339,11 @@ tape('SOCKS5h proxy with hostname resolution', function (t) {
 
 tape('Default socks:// scheme uses SOCKS5', function (t) {
   createTestServers(({
-        targetServer,
-        targetPort,
-        socksServer,
-        socksPort
-    }) => {
+    targetServer,
+    targetPort,
+    socksServer,
+    socksPort
+  }) => {
     request({
       url: `http://127.0.0.1:${targetPort}/default-socks`,
       proxy: `socks://127.0.0.1:${socksPort}`,
@@ -406,11 +407,11 @@ tape('SOCKS proxy via HTTP_PROXY environment variable', function (t) {
 
 tape('SOCKS proxy with POST data', function (t) {
   createTestServers(({
-        targetServer,
-        targetPort,
-        socksServer,
-        socksPort
-    }) => {
+    targetServer,
+    targetPort,
+    socksServer,
+    socksPort
+  }) => {
     const postData = JSON.stringify({
       test: 'data',
       number: 42

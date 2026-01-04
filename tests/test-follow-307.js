@@ -1,14 +1,14 @@
 'use strict'
 
-var http = require('http')
-var request = require('../index')
-var tape = require('tape')
+const http = require('http')
+const request = require('../index')
+const tape = require('tape')
 
 // test data
-var redirecter = 'test1.local.omg' // always resolves to 127.0.0.1
-var responder = 'test2.local.omg'  // this too.
+const redirecter = 'test1.local.omg' // always resolves to 127.0.0.1
+const responder = 'test2.local.omg' // this too.
 
-var server = http.createServer(function (req, res) {
+const server = http.createServer(function (req, res) {
   if (req.headers.host.indexOf(redirecter) === 0) {
     res.setHeader('location', `http://${responder}:${port}/foo`)
     res.statusCode = 307
@@ -22,7 +22,7 @@ var server = http.createServer(function (req, res) {
   return res.end('not found')
 })
 
-var port
+let port
 
 tape('setup', function (t) {
   server.listen(0, function () {
@@ -32,7 +32,7 @@ tape('setup', function (t) {
 })
 
 tape('307 redirect should work when host is set explicitly, but changes on redirect', function (t) {
-  var redirects = 0
+  let redirects = 0
 
   request({
     url: `http://${redirecter}:${port}/foo`,
@@ -43,7 +43,7 @@ tape('307 redirect should work when host is set explicitly, but changes on redir
     followRedirect: true,
     encoding: null,
     lookup: function (hostname, options, callback) {
-      callback(null, '127.0.0.1', 4)  // All hosts will resolve to 127.0.0.1
+      callback(null, '127.0.0.1', 4) // All hosts will resolve to 127.0.0.1
     }
   }, function (err, res, body) {
     t.equal(err, null)
