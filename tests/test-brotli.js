@@ -1,17 +1,17 @@
 'use strict'
 
-var request = require('../index')
-var http = require('http')
-var zlib = require('zlib')
-var tape = require('tape')
-var Buffer = require('safe-buffer').Buffer
+const request = require('../index')
+const http = require('http')
+const zlib = require('zlib')
+const tape = require('tape')
+const Buffer = require('safe-buffer').Buffer
 
-var testContent = 'compressible response content.\n'
-var testContentBrotli = zlib.brotliCompressSync(testContent)
-var testContentBig
-var testContentBigBrotli
+const testContent = 'compressible response content.\n'
+const testContentBrotli = zlib.brotliCompressSync(testContent)
+let testContentBig
+let testContentBigBrotli
 
-var server = http.createServer(function (req, res) {
+const server = http.createServer(function (req, res) {
   res.statusCode = 200
   res.setHeader('Content-Type', 'text/plain')
 
@@ -50,11 +50,11 @@ tape('setup', function (t) {
   // Need big compressed content to be large enough to chunk into brotli blocks.
   // Want it to be deterministic to ensure test is reliable.
   // Generate pseudo-random printable ASCII characters using MINSTD
-  var a = 48271
-  var m = 0x7FFFFFFF
-  var x = 1
+  const a = 48271
+  const m = 0x7FFFFFFF
+  let x = 1
   testContentBig = Buffer.alloc(10240)
-  for (var i = 0; i < testContentBig.length; ++i) {
+  for (let i = 0; i < testContentBig.length; ++i) {
     x = (a * x) & m
     // Printable ASCII range from 32-126, inclusive
     testContentBig[i] = (x % 95) + 32
@@ -69,7 +69,7 @@ tape('setup', function (t) {
 })
 
 tape('transparently supports brotli decoding to callbacks', function (t) {
-  var options = { url: server.url + '/foo', brotli: true }
+  const options = { url: server.url + '/foo', brotli: true }
   request.get(options, function (err, res, body) {
     t.equal(err, null)
     t.equal(res.headers['content-encoding'], 'br')
@@ -79,8 +79,8 @@ tape('transparently supports brotli decoding to callbacks', function (t) {
 })
 
 tape('transparently supports brotli decoding to pipes', function (t) {
-  var options = { url: server.url + '/foo', brotli: true }
-  var chunks = []
+  const options = { url: server.url + '/foo', brotli: true }
+  const chunks = []
   request.get(options)
     .on('data', function (chunk) {
       chunks.push(chunk)
@@ -95,10 +95,10 @@ tape('transparently supports brotli decoding to pipes', function (t) {
 })
 
 tape('does not request brotli if user specifies Accepted-Encodings', function (t) {
-  var headers = { 'Accept-Encoding': null }
-  var options = {
+  const headers = { 'Accept-Encoding': null }
+  const options = {
     url: server.url + '/foo',
-    headers: headers,
+    headers,
     brotli: true
   }
   request.get(options, function (err, res, body) {
@@ -110,8 +110,8 @@ tape('does not request brotli if user specifies Accepted-Encodings', function (t
 })
 
 tape('does not decode user-requested encoding by default', function (t) {
-  var headers = { 'Accept-Encoding': 'br' }
-  var options = { url: server.url + '/foo', headers: headers }
+  const headers = { 'Accept-Encoding': 'br' }
+  const options = { url: server.url + '/foo', headers }
   request.get(options, function (err, res, body) {
     t.equal(err, null)
     t.equal(res.headers['content-encoding'], 'br')
@@ -121,8 +121,8 @@ tape('does not decode user-requested encoding by default', function (t) {
 })
 
 tape('does not decode brotli encoding when "gzip" option is set', function (t) {
-  var headers = { 'Accept-Encoding': 'br' }
-  var options = { url: server.url + '/foo', headers: headers, gzip: true }
+  const headers = { 'Accept-Encoding': 'br' }
+  const options = { url: server.url + '/foo', headers, gzip: true }
   request.get(options, function (err, res, body) {
     t.equal(err, null)
     t.equal(res.headers['content-encoding'], 'br')
@@ -132,14 +132,14 @@ tape('does not decode brotli encoding when "gzip" option is set', function (t) {
 })
 
 tape('supports character encoding with brotli encoding', function (t) {
-  var headers = { 'Accept-Encoding': 'br' }
-  var options = {
+  const headers = { 'Accept-Encoding': 'br' }
+  const options = {
     url: server.url + '/foo',
-    headers: headers,
+    headers,
     brotli: true,
     encoding: 'utf8'
   }
-  var strings = []
+  const strings = []
   request.get(options)
     .on('data', function (string) {
       t.equal(typeof string, 'string')
@@ -155,7 +155,7 @@ tape('supports character encoding with brotli encoding', function (t) {
 })
 
 tape('transparently supports brotli error to callbacks', function (t) {
-  var options = { url: server.url + '/error', brotli: true }
+  const options = { url: server.url + '/error', brotli: true }
   request.get(options, function (err, res, body) {
     t.ok(err)
     t.equal(res, undefined)
@@ -165,7 +165,7 @@ tape('transparently supports brotli error to callbacks', function (t) {
 })
 
 tape('transparently supports brotli error to pipes', function (t) {
-  var options = { url: server.url + '/error', brotli: true }
+  const options = { url: server.url + '/error', brotli: true }
   request.get(options)
     .on('data', function (chunk) {
       t.fail('Should not receive data event')
@@ -180,7 +180,7 @@ tape('transparently supports brotli error to pipes', function (t) {
 })
 
 tape('pause when streaming from a brotli request object', function (t) {
-  var options = { url: server.url + '/chunks', brotli: true }
+  const options = { url: server.url + '/chunks', brotli: true }
   request.get(options, function (err, res, body) {
     t.equal(err, null)
     t.equal(body, testContentBig.toString())
@@ -189,9 +189,9 @@ tape('pause when streaming from a brotli request object', function (t) {
 })
 
 tape('pause before streaming from a brotli request object', function (t) {
-  var paused = true
-  var options = { url: server.url + '/foo', brotli: true }
-  var r = request.get(options)
+  let paused = true
+  const options = { url: server.url + '/foo', brotli: true }
+  const r = request.get(options)
   r.pause()
   r.on('data', function (data) {
     t.notOk(paused, 'Only receive data when not paused')
@@ -206,7 +206,7 @@ tape('pause before streaming from a brotli request object', function (t) {
 })
 
 tape('do not try to pipe HEAD request responses', function (t) {
-  var options = { method: 'HEAD', url: server.url + '/foo', brotli: true }
+  const options = { method: 'HEAD', url: server.url + '/foo', brotli: true }
 
   request(options, function (err, res, body) {
     t.equal(err, null)
@@ -216,18 +216,19 @@ tape('do not try to pipe HEAD request responses', function (t) {
 })
 
 tape('do not try to pipe responses with no body', function (t) {
-  var options = { url: server.url + '/foo', brotli: true }
+  const options = { url: server.url + '/foo', brotli: true }
 
   // skip 105 on Node >= v10
-  var statusCodes = process.version.split('.')[0].slice(1) >= 10
-    ? [204, 304] : [105, 204, 304]
+  const statusCodes = process.version.split('.')[0].slice(1) >= 10
+    ? [204, 304]
+    : [105, 204, 304]
 
   ;(function next (index) {
     if (index === statusCodes.length) {
       t.end()
       return
     }
-    options.headers = {code: statusCodes[index]}
+    options.headers = { code: statusCodes[index] }
     request.post(options, function (err, res, body) {
       t.equal(err, null)
       t.equal(res.headers.code, statusCodes[index].toString())

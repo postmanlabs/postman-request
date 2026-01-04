@@ -1,10 +1,10 @@
-var tape = require('tape')
-var server = require('./server')
-var request = require('../index')
-var destroyable = require('server-destroy')
-var urlEncoder = require('postman-url-encoder')
+const tape = require('tape')
+const server = require('./server')
+const request = require('../index')
+const destroyable = require('server-destroy')
+const urlEncoder = require('postman-url-encoder')
 
-var httpServer = server.createServer()
+const httpServer = server.createServer()
 
 destroyable(httpServer)
 
@@ -17,14 +17,14 @@ tape('setup', function (t) {
 
     httpServer.on('/redirect', function (req, res) {
       res.writeHead(301, {
-        'Location': httpServer.url + '/query?q={(`*`)}'
+        Location: httpServer.url + '/query?q={(`*`)}'
       })
       res.end()
     })
 
     httpServer.on('/relative_redirect', function (req, res) {
       res.writeHead(301, {
-        'Location': '/query?q={(`*`)}'
+        Location: '/query?q={(`*`)}'
       })
       res.end()
     })
@@ -37,8 +37,8 @@ tape('setup', function (t) {
 // so that it don't do extra encoding on top of given `urlParse` option
 
 tape('without urlParser option', function (t) {
-  var requestUrl = httpServer.url + '/query?q={(`*`)}'
-  var options = { disableUrlEncoding: true }
+  const requestUrl = httpServer.url + '/query?q={(`*`)}'
+  const options = { disableUrlEncoding: true }
 
   request(requestUrl, options, function (err, res, body) {
     t.equal(err, null)
@@ -50,8 +50,8 @@ tape('without urlParser option', function (t) {
 })
 
 tape('without urlParser option with redirect', function (t) {
-  var requestUrl = httpServer.url + '/redirect'
-  var options = { disableUrlEncoding: true }
+  const requestUrl = httpServer.url + '/redirect'
+  const options = { disableUrlEncoding: true }
 
   request(requestUrl, options, function (err, res, body) {
     t.equal(err, null)
@@ -63,8 +63,8 @@ tape('without urlParser option with redirect', function (t) {
 })
 
 tape('without urlParser option and redirect with relative URL', function (t) {
-  var requestUrl = httpServer.url + '/relative_redirect'
-  var options = { disableUrlEncoding: true }
+  const requestUrl = httpServer.url + '/relative_redirect'
+  const options = { disableUrlEncoding: true }
 
   request(requestUrl, options, function (err, res, body) {
     t.equal(err, null)
@@ -76,8 +76,8 @@ tape('without urlParser option and redirect with relative URL', function (t) {
 })
 
 tape('with urlParser option', function (t) {
-  var requestUrl = httpServer.url + '/query?q={(`*`)}'
-  var options = {
+  const requestUrl = httpServer.url + '/query?q={(`*`)}'
+  const options = {
     disableUrlEncoding: true,
     urlParser: {
       parse: urlEncoder.toNodeUrl,
@@ -95,8 +95,8 @@ tape('with urlParser option', function (t) {
 })
 
 tape('with urlParser option and redirect', function (t) {
-  var requestUrl = httpServer.url + '/redirect'
-  var options = {
+  const requestUrl = httpServer.url + '/redirect'
+  const options = {
     disableUrlEncoding: true,
     urlParser: {
       parse: urlEncoder.toNodeUrl,
@@ -114,8 +114,8 @@ tape('with urlParser option and redirect', function (t) {
 })
 
 tape('with urlParser option and redirect with relative URL', function (t) {
-  var requestUrl = httpServer.url + '/relative_redirect'
-  var options = {
+  const requestUrl = httpServer.url + '/relative_redirect'
+  const options = {
     disableUrlEncoding: true,
     urlParser: {
       parse: urlEncoder.toNodeUrl,
@@ -133,8 +133,8 @@ tape('with urlParser option and redirect with relative URL', function (t) {
 })
 
 tape('with invalid urlParser option', function (t) {
-  var requestUrl = httpServer.url + '/query?q={(`*`)}'
-  var options = {
+  const requestUrl = httpServer.url + '/query?q={(`*`)}'
+  const options = {
     disableUrlEncoding: true,
     urlParser: 'invalid option. this should be an object'
   }
@@ -149,8 +149,8 @@ tape('with invalid urlParser option', function (t) {
 })
 
 tape('with urlParser option but missing required methods', function (t) {
-  var requestUrl = httpServer.url + '/query?q={(`*`)}'
-  var options = {
+  const requestUrl = httpServer.url + '/query?q={(`*`)}'
+  const options = {
     disableUrlEncoding: true,
     urlParser: {
       parse: urlEncoder.toNodeUrl

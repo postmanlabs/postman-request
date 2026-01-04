@@ -1,9 +1,9 @@
 'use strict'
 
-var request = require('../index')
-var tape = require('tape')
-var server = require('./server')
-var destroyable = require('server-destroy')
+const request = require('../index')
+const tape = require('tape')
+const server = require('./server')
+const destroyable = require('server-destroy')
 
 const s = server.createHttp2Server()
 
@@ -34,7 +34,7 @@ function addTest (errorCode, data = {}) {
           return
         }
         if (errorCode === 8) {
-          t.equal(err.message, `HTTP/2 Stream closed with error code NGHTTP2_CANCEL`)
+          t.equal(err.message, 'HTTP/2 Stream closed with error code NGHTTP2_CANCEL')
           t.end()
           return
         }

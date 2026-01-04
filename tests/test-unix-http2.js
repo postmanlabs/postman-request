@@ -1,40 +1,42 @@
 'use strict'
 
-var request = require('../index').defaults({strictSSL: false, protocolVersion: 'http2'})
-var fs = require('fs')
-var rimraf = require('rimraf')
-var assert = require('assert')
-var tape = require('tape')
-var url = require('url')
-var server = require('./server')
+const request = require('../index').defaults({ strictSSL: false, protocolVersion: 'http2' })
+const fs = require('fs')
+const rimraf = require('rimraf')
+const assert = require('assert')
+const tape = require('tape')
+const url = require('url')
+const server = require('./server')
 
-var rawPath = [null, 'raw', 'path'].join('/')
-var queryPath = [null, 'query', 'path'].join('/')
-var searchString = '?foo=bar'
-var socket = [__dirname, 'tmp-socket'].join('/')
-var expectedBody = 'connected'
-var statusCode = 200
+const rawPath = [null, 'raw', 'path'].join('/')
+const queryPath = [null, 'query', 'path'].join('/')
+const searchString = '?foo=bar'
+const socket = [__dirname, 'tmp-socket'].join('/')
+const expectedBody = 'connected'
+const statusCode = 200
 
-var s = server.createHttp2Server()
+const s = server.createHttp2Server()
 
 rimraf.sync(socket)
 
 s.on(rawPath, function (req, res) {
-  var incomingUrl = url.parse(req.url)
+  /* eslint-disable-next-line n/no-deprecated-api */
+  const incomingUrl = url.parse(req.url)
   assert.equal(incomingUrl.pathname, rawPath, 'requested path is sent to server')
   res.writeHead(statusCode)
   res.end(expectedBody)
 })
 
 s.on(queryPath + searchString, function (req, res) {
-  var incomingUrl = url.parse(req.url)
+  /* eslint-disable-next-line n/no-deprecated-api */
+  const incomingUrl = url.parse(req.url)
   assert.equal(incomingUrl.pathname, queryPath, 'requested path is sent to server')
   assert.equal(incomingUrl.search, searchString, 'query string is sent to server')
   res.writeHead(statusCode)
   res.end(expectedBody)
 })
 
-var connections = []
+const connections = []
 
 s.on('connection', function (conn) {
   connections.push(conn)
