@@ -1,12 +1,12 @@
 'use strict'
 
-var http = require('http')
-var request = require('../')
-var tape = require('tape')
-var destroyable = require('server-destroy')
+const http = require('http')
+const request = require('../')
+const tape = require('tape')
+const destroyable = require('server-destroy')
 
-var server = http.createServer(function (req, res) {
-  var data = ''
+const server = http.createServer(function (req, res) {
+  let data = ''
 
   req.on('data', function (d) {
     data += d
@@ -37,14 +37,13 @@ tape('default boundary', function (t) {
       formKey: 'formValue'
     }
   }, function (err, res, body) {
-    var req = JSON.parse(body)
-    var boundary
+    const req = JSON.parse(body)
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.ok(/multipart\/form-data; boundary=--------------------------\d+/
       .test(req.headers['content-type']))
 
-    boundary = req.headers['content-type'].split('boundary=')[1]
+    const boundary = req.headers['content-type'].split('boundary=')[1]
     t.ok(/--------------------------\d+/.test(boundary))
     t.ok(req.body.startsWith('--' + boundary))
     t.ok(req.body.indexOf('name="formKey"') !== -1)
@@ -55,7 +54,7 @@ tape('default boundary', function (t) {
 })
 
 tape('custom boundary', function (t) {
-  var boundary = 'X-FORM-DATA-BOUNDARY'
+  const boundary = 'X-FORM-DATA-BOUNDARY'
   request.post({
     url: server.url,
     headers: {
@@ -65,7 +64,7 @@ tape('custom boundary', function (t) {
       formKey: 'formValue'
     }
   }, function (err, res, body) {
-    var req = JSON.parse(body)
+    const req = JSON.parse(body)
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(req.headers['content-type'], 'multipart/form-data; boundary=' + boundary)
@@ -78,7 +77,7 @@ tape('custom boundary', function (t) {
 })
 
 tape('custom boundary within quotes', function (t) {
-  var boundary = 'X-FORM-DATA-BOUNDARY'
+  const boundary = 'X-FORM-DATA-BOUNDARY'
   request.post({
     url: server.url,
     headers: {
@@ -88,7 +87,7 @@ tape('custom boundary within quotes', function (t) {
       formKey: 'formValue'
     }
   }, function (err, res, body) {
-    var req = JSON.parse(body)
+    const req = JSON.parse(body)
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(req.headers['content-type'], 'multipart/form-data; boundary="' + boundary + '"')
@@ -110,12 +109,11 @@ tape('content-length without content-type', function (t) {
       formKey: 'formValue'
     }
   }, function (err, res, body) {
-    var req = JSON.parse(body)
-    var boundary
+    const req = JSON.parse(body)
+    const boundary = req.headers['content-type'].split('boundary=')[1]
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.notEqual(req.headers['content-type'], null)
-    boundary = req.headers['content-type'].split('boundary=')[1]
     t.equal(req.headers['content-type'], 'multipart/form-data; boundary=' + boundary)
     t.equal(req.headers['content-length'], '171')
     t.ok(req.body.startsWith('--' + boundary))
@@ -127,7 +125,7 @@ tape('content-length without content-type', function (t) {
 })
 
 tape('custom boundary with content-length', function (t) {
-  var boundary = 'X-FORM-DATA-BOUNDARY'
+  const boundary = 'X-FORM-DATA-BOUNDARY'
   request.post({
     url: server.url,
     headers: {
@@ -138,7 +136,7 @@ tape('custom boundary with content-length', function (t) {
       formKey: 'formValue'
     }
   }, function (err, res, body) {
-    var req = JSON.parse(body)
+    const req = JSON.parse(body)
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(req.headers['content-type'], 'multipart/form-data; boundary=' + boundary)
@@ -152,7 +150,7 @@ tape('custom boundary with content-length', function (t) {
 })
 
 tape('custom boundary and charset', function (t) {
-  var boundary = 'X-FORM-DATA-BOUNDARY'
+  const boundary = 'X-FORM-DATA-BOUNDARY'
   request.post({
     url: server.url,
     headers: {
@@ -162,7 +160,7 @@ tape('custom boundary and charset', function (t) {
       formKey: 'formValue'
     }
   }, function (err, res, body) {
-    var req = JSON.parse(body)
+    const req = JSON.parse(body)
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(req.headers['content-type'], 'multipart/form-data; charset=UTF-8; boundary=' + boundary)
@@ -175,7 +173,7 @@ tape('custom boundary and charset', function (t) {
 })
 
 tape('custom boundary with single quotations', function (t) {
-  var boundary = '"X-FORM-DATA-BOUNDARY'
+  const boundary = '"X-FORM-DATA-BOUNDARY'
   request.post({
     url: server.url,
     headers: {
@@ -185,7 +183,7 @@ tape('custom boundary with single quotations', function (t) {
       formKey: 'formValue'
     }
   }, function (err, res, body) {
-    var req = JSON.parse(body)
+    const req = JSON.parse(body)
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(req.headers['content-type'], 'multipart/form-data; boundary=' + boundary)
@@ -198,7 +196,7 @@ tape('custom boundary with single quotations', function (t) {
 })
 
 tape('custom boundary with multipart/mixed', function (t) {
-  var boundary = 'X-FORM-DATA-BOUNDARY'
+  const boundary = 'X-FORM-DATA-BOUNDARY'
   request.post({
     url: server.url,
     headers: {
@@ -208,15 +206,14 @@ tape('custom boundary with multipart/mixed', function (t) {
       formKey: 'formValue'
     }
   }, function (err, res, body) {
-    var req = JSON.parse(body)
-    var boundary
+    const req = JSON.parse(body)
+    const boundary = req.headers['content-type'].split('boundary=')[1]
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     // it should override invalid content-type
     t.ok(/multipart\/form-data; boundary=--------------------------\d+/
       .test(req.headers['content-type']))
 
-    boundary = req.headers['content-type'].split('boundary=')[1]
     t.ok(/--------------------------\d+/.test(boundary))
     t.ok(req.body.startsWith('--' + boundary))
     t.ok(req.body.indexOf('name="formKey"') !== -1)
@@ -236,8 +233,8 @@ tape('invalid content-type', function (t) {
       formKey: 'formValue'
     }
   }, function (err, res, body) {
-    var req = JSON.parse(body)
-    var boundary
+    const req = JSON.parse(body)
+    const boundary = req.headers['content-type'].split('boundary=')[1]
     t.equal(err, null)
     t.equal(res.statusCode, 200)
 
@@ -245,7 +242,6 @@ tape('invalid content-type', function (t) {
     t.ok(/multipart\/form-data; boundary=--------------------------\d+/
       .test(req.headers['content-type']))
 
-    boundary = req.headers['content-type'].split('boundary=')[1]
     t.ok(/--------------------------\d+/.test(boundary))
     t.ok(req.body.startsWith('--' + boundary))
     t.ok(req.body.indexOf('name="formKey"') !== -1)
@@ -266,7 +262,7 @@ tape('invalid content-type with allowContentTypeOverride', function (t) {
     },
     allowContentTypeOverride: true
   }, function (err, res, body) {
-    var req = JSON.parse(body)
+    const req = JSON.parse(body)
     t.equal(err, null)
     t.equal(res.statusCode, 200)
     t.equal(req.headers['content-type'], 'something/else')
@@ -286,8 +282,8 @@ tape('allowContentTypeOverride with no content-type', function (t) {
     },
     allowContentTypeOverride: true
   }, function (err, res, body) {
-    var req = JSON.parse(body)
-    var boundary
+    const req = JSON.parse(body)
+    const boundary = req.headers['content-type'].split('boundary=')[1]
     t.equal(err, null)
     t.equal(res.statusCode, 200)
 
@@ -295,7 +291,6 @@ tape('allowContentTypeOverride with no content-type', function (t) {
     t.ok(/multipart\/form-data; boundary=--------------------------\d+/
       .test(req.headers['content-type']))
 
-    boundary = req.headers['content-type'].split('boundary=')[1]
     t.ok(/--------------------------\d+/.test(boundary))
     t.ok(req.body.startsWith('--' + boundary))
     t.ok(req.body.indexOf('name="formKey"') !== -1)

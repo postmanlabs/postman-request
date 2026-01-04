@@ -1,50 +1,51 @@
-var request = require('../index').defaults({strictSSL: false})
-var http2 = require('http2')
-var zlib = require('zlib')
-var tape = require('tape')
-var url = require('url')
-var path = require('path')
-var fs = require('fs')
-var destroyable = require('server-destroy')
+const request = require('../index').defaults({ strictSSL: false })
+const http2 = require('http2')
+const zlib = require('zlib')
+const tape = require('tape')
+const url = require('url')
+const path = require('path')
+const fs = require('fs')
+const destroyable = require('server-destroy')
 
-var CHAR = 'X'
+const CHAR = 'X'
 
 // request path to this server should be of the form '/<bytes>?gzip=[true/false]'
 // response from the server will have size of <bytes> from request path
-var server = http2.createSecureServer(
+const server = http2.createSecureServer(
   {
-    key: fs.readFileSync(path.join(__dirname, 'ssl', 'test.key')),
-    cert: fs.readFileSync(path.join(__dirname, 'ssl', 'test.crt'))
+    key: fs.readFileSync(path.join(__dirname, 'ssl', 'ca', 'localhost.key')),
+    cert: fs.readFileSync(path.join(__dirname, 'ssl', 'ca', 'localhost.crt'))
   }
-, function (req, res) {
-  var parsedUrl = url.parse(req.url, {parseQueryString: true})
-  var bytes = parseInt(parsedUrl.pathname.substring(1)) || 0
-  var gzip = parsedUrl.query.gzip
-  var data = Buffer.from(CHAR.repeat(bytes))
+  , function (req, res) {
+    /* eslint-disable-next-line n/no-deprecated-api */
+    const parsedUrl = url.parse(req.url, { parseQueryString: true })
+    const bytes = parseInt(parsedUrl.pathname.substring(1)) || 0
+    const gzip = parsedUrl.query.gzip
+    const data = Buffer.from(CHAR.repeat(bytes))
 
-  res.setHeader('Content-Type', 'text/plain')
+    res.setHeader('Content-Type', 'text/plain')
 
-  if (gzip === 'true') {
-    zlib.gzip(data, function (err, compressedData) {
-      if (err) {
-        res.writeHead(500)
+    if (gzip === 'true') {
+      zlib.gzip(data, function (err, compressedData) {
+        if (err) {
+          res.writeHead(500)
+          res.end()
+          return
+        }
+
+        res.setHeader('Content-Encoding', 'gzip')
+        res.setHeader('Content-Length', compressedData.length)
+        res.writeHead(200)
+        res.write(compressedData)
         res.end()
-        return
-      }
-
-      res.setHeader('Content-Encoding', 'gzip')
-      res.setHeader('Content-Length', compressedData.length)
+      })
+    } else {
+      res.setHeader('Content-Length', data.length)
       res.writeHead(200)
-      res.write(compressedData)
+      res.write(data)
       res.end()
-    })
-  } else {
-    res.setHeader('Content-Length', data.length)
-    res.writeHead(200)
-    res.write(data)
-    res.end()
-  }
-})
+    }
+  })
 
 destroyable(server)
 
@@ -57,7 +58,7 @@ tape('setup', function (t) {
 })
 
 tape('response < maxResponseSize', function (t) {
-  var options = {
+  const options = {
     method: 'GET',
     uri: server.url + '/50',
     maxResponseSize: 100,
@@ -73,7 +74,7 @@ tape('response < maxResponseSize', function (t) {
 })
 
 tape('response = maxResponseSize', function (t) {
-  var options = {
+  const options = {
     method: 'GET',
     uri: server.url + '/100',
     maxResponseSize: 100,
@@ -89,7 +90,7 @@ tape('response = maxResponseSize', function (t) {
 })
 
 tape('response > maxResponseSize', function (t) {
-  var options = {
+  const options = {
     method: 'GET',
     uri: server.url + '/200',
     maxResponseSize: 100,
@@ -106,7 +107,7 @@ tape('response > maxResponseSize', function (t) {
 })
 
 tape('extracted gzip response > maxResponseSize but content-length < maxResponseSize', function (t) {
-  var options = {
+  const options = {
     method: 'GET',
     uri: server.url + '/500?gzip=true', // for 500 bytes gzip response, content-length will be around 30
     maxResponseSize: 490,
@@ -124,7 +125,7 @@ tape('extracted gzip response > maxResponseSize but content-length < maxResponse
 })
 
 tape('extracted gzip response < maxResponseSize', function (t) {
-  var options = {
+  const options = {
     method: 'GET',
     uri: server.url + '/100?gzip=true',
     maxResponseSize: 200,

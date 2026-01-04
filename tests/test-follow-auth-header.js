@@ -1,15 +1,15 @@
 'use strict'
 
-var tape = require('tape')
-var destroyable = require('server-destroy')
+const tape = require('tape')
+const destroyable = require('server-destroy')
 
-var server = require('./server')
-var request = require('../index')
+const server = require('./server')
+const request = require('../index')
 
 function runTest (t, statusCode, followAuthorizationHeader) {
-  var s = server.createServer()
-  var redirects = 0
-  var authHeader = 'Basic aGVsbG86d29ybGQ='
+  const s = server.createServer()
+  let redirects = 0
+  const authHeader = 'Basic aGVsbG86d29ybGQ='
 
   destroyable(s)
 
@@ -39,7 +39,7 @@ function runTest (t, statusCode, followAuthorizationHeader) {
       },
       followAllRedirects: true,
       followRedirect: true,
-      followAuthorizationHeader: followAuthorizationHeader,
+      followAuthorizationHeader,
       lookup: function (hostname, options, callback) {
         callback(null, '127.0.0.1', 4) // All hosts will resolve to 127.0.0.1
       }

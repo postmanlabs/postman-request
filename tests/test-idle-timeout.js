@@ -1,10 +1,10 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
 
-var s
+let s
 
 function createServer () {
   const s = server.createServer()
@@ -27,7 +27,7 @@ tape('setup', function (t) {
 })
 
 tape('should reuse the same socket', function (t) {
-  var shouldTimeout = {
+  const shouldTimeout = {
     url: s.url + '/timeout',
     pool: {}, // Provide pool so global pool is not shared between tests
     agentOptions: {
@@ -35,7 +35,7 @@ tape('should reuse the same socket', function (t) {
     }
   }
 
-  var socket
+  let socket
   request(shouldTimeout, function (err) {
     t.equal(err, null)
     request(shouldTimeout, function (err) {
@@ -52,7 +52,7 @@ tape('should reuse the same socket', function (t) {
 })
 
 tape('create a new socket when idle timeout is less than keep alive and time b/w requests is greater than idle timeout', function (t) {
-  var shouldTimeout = {
+  const shouldTimeout = {
     url: s.url + '/timeout',
     pool: {},
     agentOptions: {
@@ -61,7 +61,7 @@ tape('create a new socket when idle timeout is less than keep alive and time b/w
     }
   }
 
-  var socket
+  let socket
   request(shouldTimeout, function (err) {
     t.equal(err, null)
     setTimeout(function () {
@@ -79,7 +79,7 @@ tape('create a new socket when idle timeout is less than keep alive and time b/w
 })
 
 tape('create a new socket when idle timeout is greater than keep alive and time b/w requests is greater than idle timeout', function (t) {
-  var shouldTimeout = {
+  const shouldTimeout = {
     url: s.url + '/timeout',
     pool: {},
     agentOptions: {
@@ -88,7 +88,7 @@ tape('create a new socket when idle timeout is greater than keep alive and time 
     }
   }
 
-  var socket
+  let socket
   request(shouldTimeout, function (err) {
     t.equal(err, null)
     setTimeout(function () {

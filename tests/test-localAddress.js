@@ -1,49 +1,66 @@
 'use strict'
-var request = require('../index')
-var tape = require('tape')
+
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
+
+const s = server.createServer()
+
+s.on('/', function (req, res) {
+  res.statusCode = 200
+  res.end('ok')
+})
+
+s.on('/redirect', function (req, res) {
+  res.writeHead(301, { location: '/' })
+  res.end()
+})
+
+tape('setup', function (t) {
+  s.listen(0, function () {
+    s.url = 'http://127.0.0.1:' + s.port
+    t.end()
+  })
+})
 
 tape('bind to invalid address', function (t) {
   request.get({
-    uri: 'http://www.google.com',
-    localAddress: '1.2.3.4'
+    uri: s.url + '/',
+    localAddress: '203.0.113.1'
   }, function (err, res) {
     t.notEqual(err, null)
-    t.equal(true, /bind EADDRNOTAVAIL/.test(err.message))
     t.equal(res, undefined)
+    t.ok(/EADDRNOTAVAIL|EINVAL/.test(err.message))
     t.end()
   })
 })
 
 tape('bind to local address', function (t) {
-  request.get({
-    uri: 'http://www.google.com',
+  const r = request.get({
+    uri: s.url + '/',
     localAddress: '127.0.0.1'
   }, function (err, res) {
-    t.notEqual(err, null)
-    t.equal(res, undefined)
+    t.equal(err, null)
+    t.equal(res.statusCode, 200)
+    t.equal(r.req.socket.localAddress, '127.0.0.1')
     t.end()
   })
 })
 
 tape('bind to local address on redirect', function (t) {
-  var os = require('os')
-  var localInterfaces = os.networkInterfaces()
-  var localIPS = []
-  Object.keys(localInterfaces).forEach(function (ifname) {
-    localInterfaces[ifname].forEach(function (iface) {
-      if (iface.family !== 'IPv4' || iface.internal !== false) {
-        // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
-        return
-      }
-      localIPS.push(iface.address)
-    })
-  })
-  request.get({
-    uri: 'http://google.com', // redirects to 'http://google.com'
-    localAddress: localIPS[0]
+  const r = request.get({
+    uri: s.url + '/redirect',
+    localAddress: '127.0.0.1'
   }, function (err, res) {
     t.equal(err, null)
-    t.equal(res.request.localAddress, localIPS[0])
+    t.equal(res.statusCode, 200)
+    t.equal(r.req.socket.localAddress, '127.0.0.1')
+    t.end()
+  })
+})
+
+tape('cleanup', function (t) {
+  s.close(function () {
     t.end()
   })
 })

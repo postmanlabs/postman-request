@@ -1,11 +1,11 @@
 'use strict'
 
-var METHODS = require('http').METHODS
-var tape = require('tape')
-var destroyable = require('server-destroy')
+const METHODS = require('http').METHODS
+const tape = require('tape')
+const destroyable = require('server-destroy')
 
-var request = require('../index')
-var httpServer = require('./server').createServer()
+const request = require('../index')
+const httpServer = require('./server').createServer()
 
 destroyable(httpServer)
 
@@ -14,8 +14,8 @@ function forEachAsync (items, fn, cb) {
 
   if (!(Array.isArray(items) && fn)) { return cb() }
 
-  var index = 0
-  var totalItems = items.length
+  let index = 0
+  const totalItems = items.length
   function next (err) {
     if (err || index >= totalItems) {
       return cb(err)
@@ -38,13 +38,14 @@ tape('setup', function (t) {
 })
 
 tape('default headers', function (t) {
-  var url = httpServer.url
+  const url = httpServer.url
   // @note Node.js <= v10 force adds content-length
-  var traceHeaders = parseInt(process.version.slice(1)) <= 10
-    ? 'host | connection | content-length' : 'host | connection'
+  const traceHeaders = parseInt(process.version.slice(1)) <= 10
+    ? 'host | connection | content-length'
+    : 'host | connection'
 
   httpServer.on('request', function (req, res) {
-    var headers = Object.keys(req.headers).join(' | ')
+    const headers = Object.keys(req.headers).join(' | ')
     switch (req.method) {
       case 'GET':
       case 'HEAD':

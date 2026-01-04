@@ -1,36 +1,36 @@
 'use strict'
 
-var server = require('./server')
-var tape = require('tape')
-var request = require('../index')
-var https = require('https')
-var net = require('net')
-var fs = require('fs')
-var path = require('path')
-var util = require('util')
-var url = require('url')
-var destroyable = require('server-destroy')
+const server = require('./server')
+const tape = require('tape')
+const request = require('../index')
+const https = require('https')
+const net = require('net')
+const fs = require('fs')
+const path = require('path')
+const util = require('util')
+const url = require('url')
+const destroyable = require('server-destroy')
 
-var events = []
-var caFile = path.resolve(__dirname, 'ssl/ca/ca.crt')
-var ca = fs.readFileSync(caFile)
-var caExtraFile = path.resolve(__dirname, 'ssl/ca/ca2.crt')
-var caExtra = fs.readFileSync(caExtraFile)
-var clientCert = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.crt'))
-var clientKey = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client-enc.key'))
-var invalidClientKey = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/localhost.key'))
-var clientPassword = 'password'
-var sslOpts = {
+let events = []
+const caFile = path.resolve(__dirname, 'ssl/ca/ca.crt')
+const ca = fs.readFileSync(caFile)
+const caExtraFile = path.resolve(__dirname, 'ssl/ca/ca2.crt')
+const caExtra = fs.readFileSync(caExtraFile)
+const clientCert = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.crt'))
+const clientKey = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client-enc.key'))
+const invalidClientKey = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/localhost.key'))
+const clientPassword = 'password'
+const sslOpts = {
   key: path.resolve(__dirname, 'ssl/ca/localhost.key'),
   cert: path.resolve(__dirname, 'ssl/ca/localhost.crt')
 }
 
-var sslExtraOpts = {
+const sslExtraOpts = {
   key: path.resolve(__dirname, 'ssl/ca/localhost-2.key'),
   cert: path.resolve(__dirname, 'ssl/ca/localhost-2.crt')
 }
 
-var mutualSSLOpts = {
+const mutualSSLOpts = {
   key: path.resolve(__dirname, 'ssl/ca/localhost.key'),
   cert: path.resolve(__dirname, 'ssl/ca/localhost.crt'),
   ca: caFile,
@@ -40,14 +40,14 @@ var mutualSSLOpts = {
 
 // this is needed for 'https over http, tunnel=false' test
 // from https://github.com/coolaj86/node-ssl-root-cas/blob/v1.1.9-beta/ssl-root-cas.js#L4267-L4281
-var httpsOpts = https.globalAgent.options
+const httpsOpts = https.globalAgent.options
 httpsOpts.ca = httpsOpts.ca || []
 httpsOpts.ca.push(ca)
 
-var s = server.createServer()
-var ss = server.createSSLServer(sslOpts)
-var ss2 = server.createSSLServer(mutualSSLOpts)
-var ss3 = server.createSSLServer(sslExtraOpts)
+const s = server.createServer()
+const ss = server.createSSLServer(sslOpts)
+const ss2 = server.createSSLServer(mutualSSLOpts)
+const ss3 = server.createSSLServer(sslExtraOpts)
 
 // XXX when tunneling https over https, connections get left open so the server
 // doesn't want to close normally (and same issue with http server on v0.8.x)
@@ -69,9 +69,9 @@ function setListeners (server, type) {
   server.on('request', function (req, res) {
     if (/^https?:/.test(req.url)) {
       // This is a proxy request
-      var dest = req.url.split(':')[0]
+      let dest = req.url.split(':')[0]
       // Is it a redirect?
-      var match = req.url.match(/\/redirect\/(https?)$/)
+      const match = req.url.match(/\/redirect\/(https?)$/)
       if (match) {
         dest += '->' + match[1]
       }
@@ -97,8 +97,9 @@ function setListeners (server, type) {
   })
 
   server.on('connect', function (req, client, head) {
-    var u = url.parse(req.url)
-    var server = net.connect(u.host, u.port, function () {
+    /* eslint-disable-next-line n/no-deprecated-api */
+    const u = url.parse(req.url)
+    const server = net.connect(u.host, u.port, function () {
       event('%s connect to %s', type, req.url)
       client.write('HTTP/1.1 200 Connection established\r\n\r\n')
       const clientPipe = client.pipe(server)
@@ -121,8 +122,8 @@ setListeners(ss3, 'https')
 
 // monkey-patch since you can't set a custom certificate authority for the
 // proxy in tunnel-agent (this is necessary for "* over https" tests)
-var customCaCount = 0
-var httpsRequestOld = https.request
+let customCaCount = 0
+const httpsRequestOld = https.request
 https.request = function (options) {
   if (customCaCount) {
     options.ca = ca
@@ -138,7 +139,10 @@ function runTest (name, opts, expected) {
       customCaCount = (opts.url === ss.url ? 2 : 1)
     }
     request(opts, function (err, res, body) {
-      event(err ? 'err ' + err.message : res.statusCode + ' ' + body)
+      const message = err && err.message
+        ? err.message.split(';')[0]
+        : null
+      event(err ? 'err ' + message : res.statusCode + ' ' + body)
       t.deepEqual(events, expected)
       events = []
       t.end()

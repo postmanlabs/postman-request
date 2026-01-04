@@ -1,15 +1,15 @@
 'use strict'
 
-var request = require('../index')
-var http = require('http')
-var https = require('https')
-var tape = require('tape')
+const request = require('../index')
+const http = require('http')
+const https = require('https')
+const tape = require('tape')
 
 tape('http', function (t) {
-  var r = request({
+  const r = request({
     uri: 'http://postman-echo.com/get',
     agents: {
-      http: new http.Agent({option1: true})
+      http: new http.Agent({ option1: true })
     }
   }, function (err, res) {
     t.equal(err, null)
@@ -21,12 +21,12 @@ tape('http', function (t) {
 })
 
 tape('http.agentClass + http.agentOptions', function (t) {
-  var r = request({
+  const r = request({
     uri: 'http://postman-echo.com/get',
     agents: {
       http: {
         agentClass: http.Agent,
-        agentOptions: {option2: true}
+        agentOptions: { option2: true }
       }
     }
   }, function (err, res) {
@@ -40,10 +40,10 @@ tape('http.agentClass + http.agentOptions', function (t) {
 })
 
 tape('https', function (t) {
-  var r = request({
+  const r = request({
     uri: 'https://postman-echo.com/get',
     agents: {
-      https: new https.Agent({option3: true})
+      https: new https.Agent({ option3: true })
     }
   }, function (err, res) {
     t.equal(err, null)
@@ -57,12 +57,12 @@ tape('https', function (t) {
 })
 
 tape('https.agentClass + https.agentOptions', function (t) {
-  var r = request({
+  const r = request({
     uri: 'https://postman-echo.com/get',
     agents: {
       https: {
         agentClass: https.Agent,
-        agentOptions: {option4: true}
+        agentOptions: { option4: true }
       }
     }
   }, function (err, res) {
@@ -78,11 +78,11 @@ tape('https.agentClass + https.agentOptions', function (t) {
 
 // @todo un-skip: https://github.com/postmanlabs/httpbin/issues/617
 tape.skip('http & https', function (t) {
-  var r = request({
+  const r = request({
     uri: 'http://postman-echo.com/redirect-to?url=https://postman-echo.com/get',
     agents: {
-      http: new http.Agent({option5: true}),
-      https: new https.Agent({option6: true})
+      http: new http.Agent({ option5: true }),
+      https: new https.Agent({ option6: true })
     }
   }, function (err, res) {
     t.equal(err, null)
@@ -97,11 +97,11 @@ tape.skip('http & https', function (t) {
 
 // @todo un-skip: https://github.com/postmanlabs/httpbin/issues/617
 tape.skip('https & http', function (t) {
-  var r = request({
+  const r = request({
     uri: 'https://httpbin.org/redirect-to?url=http://postman-echo.com/get',
     agents: {
-      http: new http.Agent({option7: true}),
-      https: new https.Agent({option8: true})
+      http: new http.Agent({ option7: true }),
+      https: new https.Agent({ option8: true })
     }
   }, function (err, res, body) {
     t.equal(err, null)

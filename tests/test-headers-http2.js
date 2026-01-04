@@ -1,11 +1,11 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
-var destroyable = require('server-destroy')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
+const destroyable = require('server-destroy')
 
-var s = server.createHttp2Server()
+const s = server.createHttp2Server()
 destroyable(s)
 
 s.on('/redirect/from', function (req, res) {
@@ -64,7 +64,7 @@ tape('preserve port in authority header if non-standard port', function (t) {
   }, function (err, res, body, debug) {
     t.equal(err, null)
     console.log()
-    t.equal(debug[0].request.headers.find(({key}) => key === ':authority').value, 'localhost:' + s.port)
+    t.equal(debug[0].request.headers.find(({ key }) => key === ':authority').value, 'localhost:' + s.port)
     t.end()
   })
 })
@@ -75,7 +75,7 @@ tape('strip port in authority header if explicit standard port (:443) & protocol
     strictSSL: false,
     protocolVersion: 'http2'
   }, function (_err, res, body, debug) {
-    t.equal(debug[0].request.headers.find(({key}) => key === ':authority').value, 'localhost')
+    t.equal(debug[0].request.headers.find(({ key }) => key === ':authority').value, 'localhost')
     t.end()
   })
 })
@@ -86,7 +86,7 @@ tape('strip port in authority header if implicit standard port & protocol (HTTPS
     strictSSL: false,
     protocolVersion: 'http2'
   }, function (_err, res, body, debug) {
-    t.equal(debug[0].request.headers.find(({key}) => key === ':authority').value, 'localhost')
+    t.equal(debug[0].request.headers.find(({ key }) => key === ':authority').value, 'localhost')
     t.end()
   })
 })

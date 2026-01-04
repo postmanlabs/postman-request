@@ -1,14 +1,14 @@
 'use strict'
 
-var tape = require('tape')
-var destroyable = require('server-destroy')
+const tape = require('tape')
+const destroyable = require('server-destroy')
 
-var server = require('./server')
-var request = require('../index')
+const server = require('./server')
+const request = require('../index')
 
-var plainServer = server.createServer()
-var httpsServer = server.createHttp2Server()
-var redirectMockTime = 10
+const plainServer = server.createServer()
+const httpsServer = server.createHttp2Server()
+const redirectMockTime = 10
 
 destroyable(plainServer)
 destroyable(httpsServer)
@@ -22,7 +22,7 @@ tape('setup', function (t) {
     plainServer.on('/redir', function (req, res) {
       // fake redirect delay to ensure strong signal for rollup check
       setTimeout(function () {
-        res.writeHead(301, { 'location': 'http://localhost:' + plainServer.port + '/' })
+        res.writeHead(301, { location: 'http://localhost:' + plainServer.port + '/' })
         res.end()
       }, redirectMockTime)
     })
@@ -35,7 +35,7 @@ tape('setup', function (t) {
       httpsServer.on('/redir', function (req, res) {
         // fake redirect delay to ensure strong signal for rollup check
         setTimeout(function () {
-          res.writeHead(301, { 'location': 'https://localhost:' + httpsServer.port + '/' })
+          res.writeHead(301, { location: 'https://localhost:' + httpsServer.port + '/' })
           res.end()
         }, redirectMockTime)
       })
@@ -46,11 +46,11 @@ tape('setup', function (t) {
 })
 
 tape('HTTPS: non-redirected request is timed', function (t) {
-  var options = {time: true, strictSSL: false, protocolVersion: 'http2'}
+  const options = { time: true, strictSSL: false, protocolVersion: 'http2' }
 
-  var start = new Date().getTime()
-  var r = request('https://localhost:' + httpsServer.port + '/', options, function (err, res, body) {
-    var end = new Date().getTime()
+  const start = new Date().getTime()
+  const r = request('https://localhost:' + httpsServer.port + '/', options, function (err, res, body) {
+    const end = new Date().getTime()
 
     t.equal(err, null)
     t.equal(typeof res.elapsedTime, 'number')
@@ -79,17 +79,17 @@ tape('HTTPS: non-redirected request is timed', function (t) {
     t.equal((res.timingPhases.total <= (end - start)), true)
 
     // validate there are no unexpected properties
-    var propNames = []
-    for (var propName in res.timings) {
-      if (res.timings.hasOwnProperty(propName)) {
+    let propNames = []
+    for (const propName in res.timings) {
+      if (Object.prototype.hasOwnProperty.call(res.timings, propName)) {
         propNames.push(propName)
       }
     }
     t.deepEqual(propNames, ['socket', 'lookup', 'connect', 'secureConnect', 'response', 'end'])
 
     propNames = []
-    for (propName in res.timingPhases) {
-      if (res.timingPhases.hasOwnProperty(propName)) {
+    for (const propName in res.timingPhases) {
+      if (Object.prototype.hasOwnProperty.call(res.timingPhases, propName)) {
         propNames.push(propName)
       }
     }
@@ -100,8 +100,8 @@ tape('HTTPS: non-redirected request is timed', function (t) {
 })
 
 tape('HTTPS: redirected request is timed with rollup', function (t) {
-  var options = {time: true, strictSSL: false, protocolVersion: 'http2'}
-  var r = request('https://localhost:' + httpsServer.port + '/redir', options, function (err, res, body) {
+  const options = { time: true, strictSSL: false, protocolVersion: 'http2' }
+  const r = request('https://localhost:' + httpsServer.port + '/redir', options, function (err, res, body) {
     t.equal(err, null)
     t.equal(typeof res.elapsedTime, 'number')
     t.equal(typeof res.responseStartTime, 'number')
@@ -114,11 +114,11 @@ tape('HTTPS: redirected request is timed with rollup', function (t) {
 })
 
 tape('HTTPS/2: Reused stream is timed', function (t) {
-  var options = { time: true, strictSSL: false, protocolVersion: 'http2' }
-  var start1 = new Date().getTime()
+  const options = { time: true, strictSSL: false, protocolVersion: 'http2' }
+  const start1 = new Date().getTime()
 
   request('https://localhost:' + httpsServer.port + '/', options, function (err1, res1, body1) {
-    var end1 = new Date().getTime()
+    const end1 = new Date().getTime()
 
     t.equal(err1, null)
     // ensure the first request's timestamps look ok
@@ -132,10 +132,10 @@ tape('HTTPS/2: Reused stream is timed', function (t) {
     t.equal((res1.timings.response >= res1.timings.secureConnect), true)
 
     // open a second request with the same agent so we re-use the same connection
-    var start2 = new Date().getTime()
+    const start2 = new Date().getTime()
 
     request('https://localhost:' + httpsServer.port + '/', options, function (err2, res2, body2) {
-      var end2 = new Date().getTime()
+      const end2 = new Date().getTime()
 
       // ensure the second request's timestamps look ok
       t.equal((res2.timingStart >= start2), true)
