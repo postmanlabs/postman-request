@@ -139,7 +139,10 @@ function runTest (name, opts, expected) {
       customCaCount = (opts.url === ss.url ? 2 : 1)
     }
     request(opts, function (err, res, body) {
-      event(err ? 'err ' + err.message : res.statusCode + ' ' + body)
+      const message = err && err.message
+        ? err.message.split(';')[0]
+        : null
+      event(err ? 'err ' + message : res.statusCode + ' ' + body)
       t.deepEqual(events, expected)
       events = []
       t.end()

@@ -4,6 +4,9 @@
 // causing these tests to fail when running under single process via tape
 if (!process.env.running_under_istanbul) {
   const request = require('../index')
+  Object.keys(request.Request.globalPool || {}).forEach(function (key) {
+    delete request.Request.globalPool[key]
+  })
   const http = require('http')
   const server = require('./server')
   const tape = require('tape')
