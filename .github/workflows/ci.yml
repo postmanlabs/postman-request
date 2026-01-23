@@ -3,12 +3,12 @@ name: CI
 on:
   push:
     paths-ignore:
-      - 'docs/**'
-      - '*.md'
+      - "docs/**"
+      - "*.md"
   pull_request:
     branches: [$default-branch]
   schedule:
-    - cron: '0 12 * * 0'
+    - cron: "0 12 * * 0"
 
 jobs:
   lint:
@@ -55,7 +55,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [20, 22, 24]
+        node-version: [16, 18, 20, 22, 24]
 
     steps:
       - name: Checkout repository
