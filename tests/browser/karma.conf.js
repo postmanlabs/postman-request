@@ -1,16 +1,14 @@
 'use strict'
-var istanbul = require('browserify-istanbul')
 
 process.env.CHROME_BIN = require('puppeteer').executablePath()
 
 module.exports = function (config) {
-  var configuration = {
+  const configuration = {
     client: { requestTestUrl: process.argv[4] },
     basePath: '../..',
     frameworks: ['tap', 'browserify'],
     preprocessors: {
-      'tests/browser/test.js': ['browserify'],
-      '*.js,!(tests)/**/*.js': ['coverage']
+      'tests/browser/test.js': ['browserify']
     },
     files: [
       'tests/browser/test.js'
@@ -42,9 +40,13 @@ module.exports = function (config) {
 
         bundle.ignore('fs/promises')
       },
-      transform: [istanbul({
-        ignore: ['**/node_modules/**', '**/tests/**']
-      })]
+      transform: [
+        ['babelify', {
+          plugins: ['istanbul'],
+          global: true,
+          ignore: ['**/node_modules/**']
+        }]
+      ]
     },
     coverageReporter: {
       type: 'lcov',

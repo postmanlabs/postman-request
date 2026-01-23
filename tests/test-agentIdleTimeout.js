@@ -1,10 +1,10 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
 
-var s
+let s
 
 function createServer () {
   const s = server.createServer()

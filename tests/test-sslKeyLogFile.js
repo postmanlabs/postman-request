@@ -1,14 +1,14 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var fs = require('fs')
-var path = require('path')
-var os = require('os')
-var tape = require('tape')
+const server = require('./server')
+const request = require('../index')
+const fs = require('fs')
+const path = require('path')
+const os = require('os')
+const tape = require('tape')
 
-var s = server.createSSLServer()
-var keylogFilePath = path.join(os.tmpdir(), 'test-keylog-' + Date.now() + '.txt')
+const s = server.createSSLServer()
+const keylogFilePath = path.join(os.tmpdir(), 'test-keylog-' + Date.now() + '.txt')
 
 tape('setup', function (t) {
   s.listen(0, function () {
@@ -38,18 +38,18 @@ tape('sslKeyLogFile - file creation and content', function (t) {
     // Give a small delay to ensure the keylog file has been written
     setTimeout(function () {
       // Check if file was created
-      var fileExists = fs.existsSync(keylogFilePath)
+      const fileExists = fs.existsSync(keylogFilePath)
       t.ok(fileExists, 'keylog file should be created')
 
       if (fileExists) {
         // Check if file contains content
-        var content = fs.readFileSync(keylogFilePath, 'utf8')
+        const content = fs.readFileSync(keylogFilePath, 'utf8')
         t.ok(content.length > 0, 'keylog file should contain content')
         t.ok(content.includes('CLIENT_HANDSHAKE_TRAFFIC_SECRET') ||
              content.includes('SERVER_HANDSHAKE_TRAFFIC_SECRET') ||
              content.includes('CLIENT_TRAFFIC_SECRET') ||
              content.includes('SERVER_TRAFFIC_SECRET'),
-             'keylog file should contain TLS key material')
+        'keylog file should contain TLS key material')
       }
 
       t.end()
@@ -59,7 +59,7 @@ tape('sslKeyLogFile - file creation and content', function (t) {
 
 tape('sslKeyLogFile - multiple requests append to same file', function (t) {
   // Use the file from the previous test
-  var initialSize = 0
+  let initialSize = 0
   if (fs.existsSync(keylogFilePath)) {
     initialSize = fs.statSync(keylogFilePath).size
   }
@@ -79,7 +79,7 @@ tape('sslKeyLogFile - multiple requests append to same file', function (t) {
 
     setTimeout(function () {
       if (fs.existsSync(keylogFilePath)) {
-        var newSize = fs.statSync(keylogFilePath).size
+        const newSize = fs.statSync(keylogFilePath).size
         // The file size should be at least as large as before (might be same if socket is reused)
         t.ok(newSize >= initialSize, 'keylog file should have content from multiple requests')
       }

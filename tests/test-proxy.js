@@ -1,11 +1,11 @@
 'use strict'
 
-var server = require('./server')
-var request = require('../index')
-var tape = require('tape')
+const server = require('./server')
+const request = require('../index')
+const tape = require('tape')
 
-var s = server.createServer()
-var currResponseHandler
+const s = server.createServer()
+let currResponseHandler
 
 ['http://google.com/', 'https://google.com/'].forEach(function (url) {
   s.on(url, function (req, res) {
@@ -15,7 +15,7 @@ var currResponseHandler
   })
 })
 
-var proxyEnvVars = [
+const proxyEnvVars = [
   'http_proxy',
   'HTTP_PROXY',
   'https_proxy',
@@ -40,13 +40,13 @@ function runTest (name, options, responseHandler) {
       delete process.env[v]
     })
     if (options.env) {
-      for (var v in options.env) {
+      for (const v in options.env) {
         process.env[v] = options.env[v]
       }
       delete options.env
     }
 
-    var called = false
+    let called = false
     currResponseHandler = function (req, res) {
       if (responseHandler) {
         called = true

@@ -3,21 +3,21 @@
 // this also validates that for each configuration new Agent is created
 // previously same Agent was re-used on passphrase change
 
-var server = require('./server')
-var request = require('../index')
-var fs = require('fs')
-var path = require('path')
-var tape = require('tape')
+const server = require('./server')
+const request = require('../index')
+const fs = require('fs')
+const path = require('path')
+const tape = require('tape')
 
-var caPath = path.resolve(__dirname, 'ssl/ca/ca.crt')
-var ca = fs.readFileSync(caPath)
-var clientPfx = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.pfx'))
-var clientKey = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.key'))
-var clientCert = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.crt'))
-var clientKeyEnc = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client-enc.key'))
-var clientPassword = 'password'
+const caPath = path.resolve(__dirname, 'ssl/ca/ca.crt')
+const ca = fs.readFileSync(caPath)
+const clientPfx = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.pfx'))
+const clientKey = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.key'))
+const clientCert = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client.crt'))
+const clientKeyEnc = fs.readFileSync(path.resolve(__dirname, 'ssl/ca/client-enc.key'))
+const clientPassword = 'password'
 
-var sslServer = server.createSSLServer({
+const sslServer = server.createSSLServer({
   key: path.resolve(__dirname, 'ssl/ca/localhost.key'),
   cert: path.resolve(__dirname, 'ssl/ca/localhost.crt'),
   ca: caPath,
@@ -44,7 +44,7 @@ tape('setup', function (t) {
 tape('key + cert', function (t) {
   request({
     url: sslServer.url,
-    ca: ca,
+    ca,
     key: clientKey,
     cert: clientCert
   }, function (err, res, body) {
@@ -57,7 +57,7 @@ tape('key + cert', function (t) {
 tape('key + cert + passphrase', function (t) {
   request({
     url: sslServer.url,
-    ca: ca,
+    ca,
     key: clientKeyEnc,
     cert: clientCert,
     passphrase: clientPassword
@@ -71,7 +71,7 @@ tape('key + cert + passphrase', function (t) {
 tape('key + cert + passphrase(invalid)', function (t) {
   request({
     url: sslServer.url,
-    ca: ca,
+    ca,
     key: clientKeyEnc,
     cert: clientCert,
     passphrase: 'invalidPassphrase'
@@ -84,7 +84,7 @@ tape('key + cert + passphrase(invalid)', function (t) {
 tape('pfx + passphrase', function (t) {
   request({
     url: sslServer.url,
-    ca: ca,
+    ca,
     pfx: clientPfx,
     passphrase: clientPassword
   }, function (err, res, body) {
@@ -97,7 +97,7 @@ tape('pfx + passphrase', function (t) {
 tape('pfx + passphrase(invalid)', function (t) {
   request({
     url: sslServer.url,
-    ca: ca,
+    ca,
     pfx: clientPfx,
     passphrase: 'invalidPassphrase'
   }, function (err, res, body) {
@@ -122,7 +122,7 @@ tape('extraCA', function (t) {
 tape('ca + extraCA', function (t) {
   request({
     url: sslServer.url,
-    ca: ca,
+    ca,
     extraCA: '---INVALID CERT---', // make sure this won't affect options.ca
     key: clientKey,
     cert: clientCert

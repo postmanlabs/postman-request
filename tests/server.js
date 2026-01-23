@@ -1,17 +1,17 @@
 'use strict'
 
-var fs = require('fs')
+const fs = require('fs')
 const net = require('net')
 const dns = require('dns')
-var http = require('http')
-var path = require('path')
-var https = require('https')
-var http2 = require('http2')
-var stream = require('stream')
-var assert = require('assert')
+const http = require('http')
+const path = require('path')
+const https = require('https')
+const http2 = require('http2')
+const stream = require('stream')
+const assert = require('assert')
 
 exports.createServer = function () {
-  var s = http.createServer(function (req, resp) {
+  const s = http.createServer(function (req, resp) {
     s.emit(req.url.replace(/(\?.*)/, ''), req, resp)
   })
   s.on('listening', function () {
@@ -24,8 +24,8 @@ exports.createServer = function () {
 }
 
 exports.createEchoServer = function () {
-  var s = http.createServer(function (req, resp) {
-    var b = ''
+  const s = http.createServer(function (req, resp) {
+    let b = ''
     req.on('data', function (chunk) {
       b += chunk
     })
@@ -52,10 +52,10 @@ exports.createEchoServer = function () {
 }
 
 exports.createSSLServer = function (opts) {
-  var i
-  var options = {
-    key: path.join(__dirname, 'ssl', 'test.key'),
-    cert: path.join(__dirname, 'ssl', 'test.crt')
+  let i
+  const options = {
+    key: path.join(__dirname, 'ssl', 'ca', 'localhost.key'),
+    cert: path.join(__dirname, 'ssl', 'ca', 'localhost.crt')
   }
   if (opts) {
     for (i in opts) {
@@ -69,7 +69,7 @@ exports.createSSLServer = function (opts) {
     }
   }
 
-  var s = https.createServer(options, function (req, resp) {
+  const s = https.createServer(options, function (req, resp) {
     s.emit(req.url, req, resp)
   })
   s.on('listening', function () {
@@ -82,7 +82,7 @@ exports.createSSLServer = function (opts) {
 }
 
 exports.createPostStream = function (text) {
-  var postStream = new stream.Stream()
+  const postStream = new stream.Stream()
   postStream.writeable = true
   postStream.readable = true
   setTimeout(function () {
@@ -92,8 +92,8 @@ exports.createPostStream = function (text) {
   return postStream
 }
 exports.createPostValidator = function (text, reqContentType) {
-  var l = function (req, resp) {
-    var r = ''
+  const l = function (req, resp) {
+    let r = ''
     req.on('data', function (chunk) {
       r += chunk
     })
@@ -102,7 +102,7 @@ exports.createPostValidator = function (text, reqContentType) {
         req.headers['content-type'] &&
         req.headers['content-type'].indexOf('boundary=') >= 0
       ) {
-        var boundary = req.headers['content-type'].split('boundary=')[1]
+        const boundary = req.headers['content-type'].split('boundary=')[1]
         text = text.replace(/__BOUNDARY__/g, boundary)
       }
       assert.equal(r, text)
@@ -118,13 +118,13 @@ exports.createPostValidator = function (text, reqContentType) {
   return l
 }
 exports.createPostJSONValidator = function (value, reqContentType) {
-  var l = function (req, resp) {
-    var r = ''
+  const l = function (req, resp) {
+    let r = ''
     req.on('data', function (chunk) {
       r += chunk
     })
     req.on('end', function () {
-      var parsedValue = JSON.parse(r)
+      const parsedValue = JSON.parse(r)
       assert.deepEqual(parsedValue, value)
       if (reqContentType) {
         assert.ok(req.headers['content-type'])
@@ -138,7 +138,7 @@ exports.createPostJSONValidator = function (value, reqContentType) {
   return l
 }
 exports.createGetResponse = function (text, contentType) {
-  var l = function (req, resp) {
+  const l = function (req, resp) {
     contentType = contentType || 'text/plain'
     resp.writeHead(200, { 'content-type': contentType })
     resp.write(text)
@@ -147,7 +147,7 @@ exports.createGetResponse = function (text, contentType) {
   return l
 }
 exports.createChunkResponse = function (chunks, contentType) {
-  var l = function (req, resp) {
+  const l = function (req, resp) {
     contentType = contentType || 'text/plain'
     resp.writeHead(200, { 'content-type': contentType })
     chunks.forEach(function (chunk) {
@@ -159,10 +159,10 @@ exports.createChunkResponse = function (chunks, contentType) {
 }
 
 exports.createHttp2Server = function (opts) {
-  var i
-  var options = {
-    key: path.join(__dirname, 'ssl', 'test.key'),
-    cert: path.join(__dirname, 'ssl', 'test.crt')
+  let i
+  const options = {
+    key: path.join(__dirname, 'ssl', 'ca', 'localhost.key'),
+    cert: path.join(__dirname, 'ssl', 'ca', 'localhost.crt')
   }
   if (opts) {
     for (i in opts) {
@@ -176,7 +176,7 @@ exports.createHttp2Server = function (opts) {
     }
   }
 
-  var s = http2.createSecureServer(options, function (req, resp) {
+  const s = http2.createSecureServer(options, function (req, resp) {
     s.emit(req.url, req, resp)
   })
   s.on('listening', function () {
@@ -259,7 +259,7 @@ exports.createSocksServer = function ({
         const cmd = req[1]
         const atyp = req[3]
         let offset = 4
-        let addr, port
+        let addr
 
         if (atyp === 0x01) { // IPv4
           addr = `${req[offset++]}.${req[offset++]}.${req[offset++]}.${req[offset++]}`
@@ -271,7 +271,7 @@ exports.createSocksServer = function ({
           return socket.end(Buffer.from([0x05, 0x08]))
         }
 
-        port = req.readUInt16BE(offset)
+        const port = req.readUInt16BE(offset)
 
         if (!allowConnection({ dstAddr: addr, dstPort: port, version: 5 })) {
           return socket.end(Buffer.from([0x05, 0x02]))
@@ -311,7 +311,7 @@ exports.createSocksServer = function ({
       clientAddress: clientSocket.remoteAddress,
       targetHost: dstAddr,
       targetPort: dstPort,
-      version: version,
+      version,
       success: false
     }
 

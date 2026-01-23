@@ -14,8 +14,8 @@
 
 'use strict'
 
-var extend = require('extend')
-var cookies = require('./lib/cookies')
+const extend = require('extend')
+const cookies = require('./lib/cookies')
 
 // organize params for patch, post, put, head, del
 function initParams (uri, options, callback) {
@@ -23,12 +23,12 @@ function initParams (uri, options, callback) {
     callback = options
   }
 
-  var params = {protocolVersion: 'http1'}
+  const params = { protocolVersion: 'http1' }
 
   if (options !== null && typeof options === 'object') {
-    extend(params, options, {uri: uri})
+    extend(params, options, { uri })
   } else if (typeof uri === 'string') {
-    extend(params, {uri: uri})
+    extend(params, { uri })
   } else {
     extend(params, uri)
   }
@@ -59,15 +59,15 @@ function request (uri, options, callback) {
     throw new Error('undefined is not a valid uri or options object.')
   }
 
-  var params = initParams(uri, options, callback)
+  const params = initParams(uri, options, callback)
 
   return new request.Request(params)
 }
 
 function verbFunc (verb) {
-  var method = verb.toUpperCase()
+  const method = verb.toUpperCase()
   return function (uri, options, callback) {
-    var params = initParams(uri, options, callback)
+    const params = initParams(uri, options, callback)
     params.method = method
     return request(params, params.callback)
   }
@@ -81,7 +81,7 @@ request.post = verbFunc('post')
 request.put = verbFunc('put')
 request.patch = verbFunc('patch')
 request.del = verbFunc('delete')
-request['delete'] = verbFunc('delete')
+request.delete = verbFunc('delete')
 
 request.jar = function (store) {
   return cookies.jar(store)
@@ -93,9 +93,9 @@ request.cookie = function (str) {
 
 function wrapRequestMethod (method, options, requester, verb) {
   return function (uri, opts, callback) {
-    var params = initParams(uri, opts, callback)
+    const params = initParams(uri, opts, callback)
 
-    var target = {}
+    const target = {}
     extend(true, target, options, params)
 
     target.pool = params.pool || options.pool
@@ -113,7 +113,7 @@ function wrapRequestMethod (method, options, requester, verb) {
 }
 
 request.defaults = function (options, requester) {
-  var self = this
+  const self = this
 
   options = options || {}
 
@@ -122,9 +122,9 @@ request.defaults = function (options, requester) {
     options = {}
   }
 
-  var defaults = wrapRequestMethod(self, options, requester)
+  const defaults = wrapRequestMethod(self, options, requester)
 
-  var verbs = ['get', 'head', 'post', 'put', 'patch', 'del', 'delete']
+  const verbs = ['get', 'head', 'post', 'put', 'patch', 'del', 'delete']
   verbs.forEach(function (verb) {
     defaults[verb] = wrapRequestMethod(self[verb], options, requester, verb)
   })
@@ -136,7 +136,7 @@ request.defaults = function (options, requester) {
 }
 
 request.forever = function (agentOptions, optionsArg) {
-  var options = {}
+  const options = {}
   if (optionsArg) {
     extend(options, optionsArg)
   }

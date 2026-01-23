@@ -1,9 +1,9 @@
 'use strict'
 
-var request = require('../index')
-var tape = require('tape')
-var destroyable = require('server-destroy')
-var server
+const request = require('../index')
+const tape = require('tape')
+const destroyable = require('server-destroy')
+let server
 
 tape('setup', function (t) {
   server = require('net').createServer(function (socket) {

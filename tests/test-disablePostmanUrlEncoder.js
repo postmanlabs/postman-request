@@ -1,9 +1,9 @@
-var tape = require('tape')
-var server = require('./server')
-var request = require('../index')
-var destroyable = require('server-destroy')
+const tape = require('tape')
+const server = require('./server')
+const request = require('../index')
+const destroyable = require('server-destroy')
 
-var plainServer = server.createServer()
+const plainServer = server.createServer()
 
 destroyable(plainServer)
 
@@ -16,14 +16,14 @@ tape('setup', function (t) {
 
     plainServer.on('/redirect', function (req, res) {
       res.writeHead(301, {
-        'Location': 'http://localhost:' + plainServer.port + '/query?%E9%82%AE=%E5%B7%AE'
+        Location: 'http://localhost:' + plainServer.port + '/query?%E9%82%AE=%E5%B7%AE'
       })
       res.end()
     })
 
     plainServer.on('/redirect2', function (req, res) {
       res.writeHead(301, {
-        'Location': 'http://localhost:' + plainServer.port + '/query?!foo!=!bar!'
+        Location: 'http://localhost:' + plainServer.port + '/query?!foo!=!bar!'
       })
       res.end()
     })
@@ -33,7 +33,7 @@ tape('setup', function (t) {
 })
 
 tape('UTF-8 URL without disableUrlEncoding option', function (t) {
-  var requestUrl = 'http://localhost:' + plainServer.port + '/query?邮=差'
+  const requestUrl = 'http://localhost:' + plainServer.port + '/query?邮=差'
 
   request(requestUrl, function (err, res, body) {
     t.equal(err, null)
@@ -43,7 +43,7 @@ tape('UTF-8 URL without disableUrlEncoding option', function (t) {
 })
 
 tape('URL containing character \'!\' without disableUrlEncoding option', function (t) {
-  var requestUrl = 'http://localhost:' + plainServer.port + '/query?!foo!=!bar!'
+  const requestUrl = 'http://localhost:' + plainServer.port + '/query?!foo!=!bar!'
 
   request(requestUrl, function (err, res, body) {
     t.equal(err, null)
@@ -53,7 +53,7 @@ tape('URL containing character \'!\' without disableUrlEncoding option', functio
 })
 
 tape('Encoded UTF-8 URL in redirect without disableUrlEncoding option', function (t) {
-  var requestUrl = 'http://localhost:' + plainServer.port + '/redirect'
+  const requestUrl = 'http://localhost:' + plainServer.port + '/redirect'
 
   request(requestUrl, function (err, res, body) {
     t.equal(err, null)
@@ -63,7 +63,7 @@ tape('Encoded UTF-8 URL in redirect without disableUrlEncoding option', function
 })
 
 tape('URL containing character \'!\' in redirect without disableUrlEncoding option', function (t) {
-  var requestUrl = 'http://localhost:' + plainServer.port + '/redirect2'
+  const requestUrl = 'http://localhost:' + plainServer.port + '/redirect2'
 
   request(requestUrl, function (err, res, body) {
     t.equal(err, null)
@@ -74,8 +74,8 @@ tape('URL containing character \'!\' in redirect without disableUrlEncoding opti
 
 tape('Encoded UTF-8 URL with disableUrlEncoding=true option', function (t) {
   // given URL should be pre-encoded because encoder is disabled. So the request will fail otherwise
-  var requestUrl = 'http://localhost:' + plainServer.port + '/query?%E9%82%AE=%E5%B7%AE'
-  var options = {
+  const requestUrl = 'http://localhost:' + plainServer.port + '/query?%E9%82%AE=%E5%B7%AE'
+  const options = {
     disableUrlEncoding: true
   }
 
@@ -87,8 +87,8 @@ tape('Encoded UTF-8 URL with disableUrlEncoding=true option', function (t) {
 })
 
 tape('URL containing character \'!\' with disableUrlEncoding=true option', function (t) {
-  var requestUrl = 'http://localhost:' + plainServer.port + '/query?!foo!=!bar!'
-  var options = { disableUrlEncoding: true }
+  const requestUrl = 'http://localhost:' + plainServer.port + '/query?!foo!=!bar!'
+  const options = { disableUrlEncoding: true }
 
   request(requestUrl, options, function (err, res, body) {
     t.equal(err, null)
@@ -99,8 +99,8 @@ tape('URL containing character \'!\' with disableUrlEncoding=true option', funct
 
 tape('Encoded UTF-8 URL in redirect with disableUrlEncoding=true option', function (t) {
   // given URL should be pre-encoded because encoder is disabled. So the request will fail otherwise
-  var requestUrl = 'http://localhost:' + plainServer.port + '/query?%E9%82%AE=%E5%B7%AE'
-  var options = {
+  const requestUrl = 'http://localhost:' + plainServer.port + '/query?%E9%82%AE=%E5%B7%AE'
+  const options = {
     disableUrlEncoding: true
   }
 
@@ -112,8 +112,8 @@ tape('Encoded UTF-8 URL in redirect with disableUrlEncoding=true option', functi
 })
 
 tape('URL with character \'!\' in redirect with disableUrlEncoding=true option', function (t) {
-  var requestUrl = 'http://localhost:' + plainServer.port + '/redirect2'
-  var options = { disableUrlEncoding: true }
+  const requestUrl = 'http://localhost:' + plainServer.port + '/redirect2'
+  const options = { disableUrlEncoding: true }
 
   request(requestUrl, options, function (err, res, body) {
     t.equal(err, null)
@@ -123,8 +123,8 @@ tape('URL with character \'!\' in redirect with disableUrlEncoding=true option',
 })
 
 tape('UTF-8 URL with disableUrlEncoding=true option', function (t) {
-  var requestUrl = 'http://localhost:' + plainServer.port + '/query?邮=差'
-  var options = { disableUrlEncoding: true }
+  const requestUrl = 'http://localhost:' + plainServer.port + '/query?邮=差'
+  const options = { disableUrlEncoding: true }
 
   // this request should fail because encoding is off and URL contains UTF-8 characters
   request(requestUrl, options, function (err, res, body) {
