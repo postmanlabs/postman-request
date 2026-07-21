@@ -13,8 +13,8 @@ var CHAR = 'X'
 // response from the server will have size of <bytes> from request path
 var server = http2.createSecureServer(
   {
-    key: fs.readFileSync(path.join(__dirname, 'ssl', 'test.key')),
-    cert: fs.readFileSync(path.join(__dirname, 'ssl', 'test.crt'))
+    key: fs.readFileSync(path.join(__dirname, 'ssl', 'ca', 'localhost.key')),
+    cert: fs.readFileSync(path.join(__dirname, 'ssl', 'ca', 'localhost.crt'))
   }
 , function (req, res) {
   var parsedUrl = url.parse(req.url, {parseQueryString: true})

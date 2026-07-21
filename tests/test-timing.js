@@ -11,6 +11,7 @@ var request = require('../index')
 var plainServer = server.createServer()
 var httpsServer = server.createSSLServer()
 var redirectMockTime = 10
+var timingLeeway = 1
 
 destroyable(plainServer)
 destroyable(httpsServer)
@@ -62,7 +63,7 @@ tape('HTTP: non-redirected request is timed', function (t) {
     t.equal((res.timingStart >= start), true)
     t.equal(typeof res.timings, 'object')
     t.equal((res.elapsedTime > 0), true)
-    t.equal((res.elapsedTime <= (end - start)), true)
+    t.equal((res.elapsedTime <= (end - start + timingLeeway)), true)
     t.equal((res.responseStartTime > r.startTime), true)
     t.equal((res.timings.socket >= 0), true)
     t.equal((res.timings.lookup >= res.timings.socket), true)
@@ -76,7 +77,7 @@ tape('HTTP: non-redirected request is timed', function (t) {
     t.equal((res.timingPhases.firstByte > 0), true)
     t.equal((res.timingPhases.download > 0), true)
     t.equal((res.timingPhases.total > 0), true)
-    t.equal((res.timingPhases.total <= (end - start)), true)
+    t.equal((res.timingPhases.total <= (end - start + timingLeeway)), true)
 
     // validate there are no unexpected properties
     var propNames = []
@@ -177,7 +178,7 @@ tape('HTTPS: non-redirected request is timed', function (t) {
     t.equal((res.timingStart >= start), true)
     t.equal(typeof res.timings, 'object')
     t.equal((res.elapsedTime > 0), true)
-    t.equal((res.elapsedTime <= (end - start)), true)
+    t.equal((res.elapsedTime <= (end - start + timingLeeway)), true)
     t.equal((res.responseStartTime > r.startTime), true)
     t.equal((res.timings.socket >= 0), true)
     t.equal((res.timings.lookup >= res.timings.socket), true)
@@ -195,7 +196,7 @@ tape('HTTPS: non-redirected request is timed', function (t) {
     t.equal((res.timingPhases.total > 0), true)
     // timingPhases.total returns a high res time with nano-second precision, where as Date.now returns time with
     // milli-second precision. Thus, we add a lee-way of atmost 1 millisecond to prevent flaky false-negatives
-    t.equal((res.timingPhases.total <= (end - start + 1)), true)
+    t.equal((res.timingPhases.total <= (end - start + timingLeeway)), true)
 
     // validate there are no unexpected properties
     var propNames = []

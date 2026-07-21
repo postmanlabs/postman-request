@@ -174,6 +174,27 @@ function parseResponseHeaders (rawHeaders) {
   return acc
 }
 
+function wrapLookupForAll (lookup) {
+  if (typeof lookup !== 'function') {
+    return lookup
+  }
+
+  return function (hostname, options, callback) {
+    if (typeof options === 'function') {
+      return lookup.call(this, hostname, options)
+    }
+
+    return lookup.call(this, hostname, options, function (err, address, family) {
+      if (err || !options.all || Array.isArray(address)) {
+        callback(err, address, family)
+        return
+      }
+
+      callback(null, [{ address: address, family: family }])
+    })
+  }
+}
+
 function Request (options) {
   // if given the method property in options, set property explicitMethod to true
 
@@ -985,8 +1006,15 @@ Request.prototype.start = function () {
 
   // We have a method named auth, which is completely different from the http.request
   // auth option.  If we don't remove it, we're gonna have a bad time.
+  if (!self.hasHeader('connection') && self.agent && self.agent === self.httpModule.globalAgent &&
+      self.agent.keepAlive === true && !self.forever) {
+    self.setHeader('Connection', 'close')
+    self._defaultConnectionClose = true
+  }
+
   var reqOptions = copy(self)
   delete reqOptions.auth
+  reqOptions.lookup = wrapLookupForAll(reqOptions.lookup)
 
   // Workaround for a bug in Node: https://github.com/nodejs/node/issues/8321
   if (!(self.disableUrlEncoding || self.proxy || self.uri.isUnix)) {

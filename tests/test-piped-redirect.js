@@ -9,12 +9,12 @@ var port2
 
 var s1 = http.createServer(function (req, resp) {
   if (req.url === '/original') {
-    resp.writeHeader(302, {
+    resp.writeHead(302, {
       'location': '/redirected'
     })
     resp.end()
   } else if (req.url === '/redirected') {
-    resp.writeHeader(200, {
+    resp.writeHead(200, {
       'content-type': 'text/plain'
     })
     resp.write('OK')
