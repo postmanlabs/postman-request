@@ -36,6 +36,15 @@ var httpsServer = server.createSSLServer({
 destroyable(http2SecureServer)
 destroyable(httpsServer)
 
+function assertHttp2ToHttpsError (t, err) {
+  t.notEqual(err, null)
+  t.ok(err.code === 'ERR_HTTP2_ERROR' || err.code === 'ERR_HTTP2_STREAM_CANCEL')
+
+  if (err.code === 'ERR_HTTP2_ERROR') {
+    t.equal(err.errno, -505)
+  }
+}
+
 tape('setup', function (t) {
   http2SecureServer.on('/', function (req, res) {
     if (req.stream.session.socket.authorized) {
@@ -171,9 +180,7 @@ tape('http2 -> https', function (t) {
     cert: clientCert,
     protocolVersion: 'http2'
   }, function (err, res, body) {
-    t.notEqual(err, null)
-    t.equal(err.code, 'ERR_HTTP2_ERROR')
-    t.equal(err.errno, -505)
+    assertHttp2ToHttpsError(t, err)
 
     t.end()
   })

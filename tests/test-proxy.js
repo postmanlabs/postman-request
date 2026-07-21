@@ -5,12 +5,19 @@ var request = require('../index')
 var tape = require('tape')
 
 var s = server.createServer()
+var direct = server.createServer()
 var currResponseHandler
+var proxyNullProxyCalled = false
+var proxiedUrls = ['http://google.com/', 'https://google.com/']
 
-['http://google.com/', 'https://google.com/'].forEach(function (url) {
+function lookupDirectServer (hostname, options, callback) {
+  callback(null, '127.0.0.1', 4)
+}
+
+proxiedUrls.forEach(function (url) {
   s.on(url, function (req, res) {
     currResponseHandler(req, res)
-    res.writeHeader(200)
+    res.writeHead(200)
     res.end('ok')
   })
 })
@@ -39,6 +46,10 @@ function runTest (name, options, responseHandler) {
     proxyEnvVars.forEach(function (v) {
       delete process.env[v]
     })
+    if (responseHandler === false && !options.url) {
+      options.url = 'http://google.com:' + direct.port
+      options.lookup = lookupDirectServer
+    }
     if (options.env) {
       for (var v in options.env) {
         process.env[v] = options.env[v]
@@ -72,8 +83,31 @@ function runTest (name, options, responseHandler) {
         }
         t.equal(body, 'ok')
       } else {
-        t.equal(/^<!doctype html>/i.test(body), true)
+        t.equal(body, 'ok')
       }
+      t.end()
+    })
+  })
+}
+
+function runProxyNullTest () {
+  tape('proxy: null should override HTTP_PROXY', function (t) {
+    proxyEnvVars.forEach(function (v) {
+      delete process.env[v]
+    })
+    process.env.HTTP_PROXY = s.url
+
+    proxyNullProxyCalled = false
+
+    request({
+      url: direct.url + '/proxy-null',
+      proxy: null,
+      timeout: 500
+    }, function (err, res, body) {
+      t.equal(proxyNullProxyCalled, false)
+      t.equal(err, null)
+      t.equal(res.statusCode, 200)
+      t.equal(body, 'ok')
       t.end()
     })
   })
@@ -91,6 +125,7 @@ function addTests () {
     }, false)
 
     runTest('should fail with "proxy response should be called"', {
+      url: direct.url,
       proxy: null
     }, true)
   } else {
@@ -224,14 +259,14 @@ function addTests () {
     runTest('NO_PROXY allows an explicit port', {
       env: {
         HTTP_PROXY: s.url,
-        NO_PROXY: 'google.com:80'
+        NO_PROXY: 'google.com:' + direct.port
       }
     }, false)
 
     runTest('NO_PROXY only overrides HTTP_PROXY if the port matches', {
       env: {
         HTTP_PROXY: s.url,
-        NO_PROXY: 'google.com:1234'
+        NO_PROXY: 'google.com:' + (direct.port + 1)
       }
     }, true)
 
@@ -275,11 +310,7 @@ function addTests () {
       }
     }, true)
 
-    runTest('proxy: null should override HTTP_PROXY', {
-      env: { HTTP_PROXY: s.url },
-      proxy: null,
-      timeout: 500
-    }, false)
+    runProxyNullTest()
 
     runTest('uri auth without proxy auth', {
       url: 'http://user:pass@google.com',
@@ -293,12 +324,39 @@ function addTests () {
 
 tape('setup', function (t) {
   s.listen(0, function () {
-    addTests()
-    tape('cleanup', function (t) {
-      s.close(function () {
-        t.end()
+    direct.listen(0, function () {
+      direct.on('/', function (req, res) {
+        res.writeHead(200)
+        res.end('ok')
       })
+      direct.on('/proxy-null', function (req, res) {
+        res.writeHead(200)
+        res.end('ok')
+      })
+
+      s.on('request', function (req, res) {
+        if (/^http:\/\/google\.com:\d+\//.test(req.url)) {
+          currResponseHandler(req, res)
+          res.writeHead(200)
+          res.end('proxied')
+        }
+      })
+
+      s.on(direct.url + '/proxy-null', function (req, res) {
+        proxyNullProxyCalled = true
+        res.writeHead(200)
+        res.end('proxied')
+      })
+
+      addTests()
+      tape('cleanup', function (t) {
+        direct.close(function () {
+          s.close(function () {
+            t.end()
+          })
+        })
+      })
+      t.end()
     })
-    t.end()
   })
 })

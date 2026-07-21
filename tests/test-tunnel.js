@@ -60,6 +60,10 @@ function event () {
   events.push(util.format.apply(null, arguments))
 }
 
+function normalizeErrorMessage (message) {
+  return message.replace(/; if the root CA is installed locally, try running Node\.js with --use-system-ca$/, '')
+}
+
 function setListeners (server, type) {
   server.on('/', function (req, res) {
     event('%s response', type)
@@ -138,7 +142,7 @@ function runTest (name, opts, expected) {
       customCaCount = (opts.url === ss.url ? 2 : 1)
     }
     request(opts, function (err, res, body) {
-      event(err ? 'err ' + err.message : res.statusCode + ' ' + body)
+      event(err ? 'err ' + normalizeErrorMessage(err.message) : res.statusCode + ' ' + body)
       t.deepEqual(events, expected)
       events = []
       t.end()

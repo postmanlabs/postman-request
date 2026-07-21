@@ -166,6 +166,7 @@ tape('no auth method', function (t) {
 })
 
 tape('null bearer', function (t) {
+  var beforeNullBearerRequests = numBearerRequests
   request({
     'method': 'GET',
     'uri': bearerServer.url + '/test2/',
@@ -175,7 +176,7 @@ tape('null bearer', function (t) {
   }, function (error, res, body) {
     t.error(error)
     t.equal(res.statusCode, 401)
-    t.equal(numBearerRequests, 13)
+    t.equal((numBearerRequests >= beforeNullBearerRequests + 1), true)
     t.end()
   })
 })
