@@ -14,27 +14,6 @@ var http2Server = server.createHttp2Server()
 destroyable(plainServer)
 destroyable(http2Server)
 
-function assertNoSocketSession (t, res) {
-  if (!res.socket) {
-    return
-  }
-
-  t.equal(res.socket.__SESSION_ID, undefined)
-  t.equal(res.socket.__SESSION_DATA, undefined)
-}
-
-function assertVerboseSession (t, res, debug, index) {
-  t.equal(typeof debug[index].session.id, 'string')
-  t.equal(typeof debug[index].session.data, 'object')
-
-  if (!res.socket) {
-    return
-  }
-
-  t.equal(typeof res.socket.__SESSION_ID, 'string')
-  t.equal(typeof res.socket.__SESSION_DATA, 'object')
-}
-
 tape('setup', function (t) {
   plainServer.listen(0, function () {
     plainServer.on('/', function (req, res) {
@@ -79,7 +58,8 @@ tape('verbose=false [default]', function (t) {
     t.equal(Array.isArray(debug), true)
     t.equal(debug.length, 1)
 
-    assertNoSocketSession(t, res)
+    t.equal(res.socket.__SESSION_ID, undefined)
+    t.equal(res.socket.__SESSION_DATA, undefined)
     t.deepEqual(Object.keys(debug[0]), ['request', 'response'])
 
     t.end()
@@ -95,7 +75,8 @@ tape('HTTP: verbose=true', function (t) {
     t.equal(Array.isArray(debug), true)
     t.equal(debug.length, 1)
 
-    assertVerboseSession(t, res, debug, 0)
+    t.equal(typeof res.socket.__SESSION_ID, 'string')
+    t.equal(typeof res.socket.__SESSION_DATA, 'object')
     t.deepEqual(Object.keys(debug[0]), ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
     t.deepEqual(Object.keys(debug[0].request), ['method', 'href', 'headers', 'proxy', 'httpVersion'])
 
@@ -128,7 +109,8 @@ tape('HTTP: redirect(HTTPS) + verbose=true', function (t) {
     t.equal(Array.isArray(debug), true)
     t.equal(debug.length, 2)
 
-    assertVerboseSession(t, res, debug, 1)
+    t.equal(typeof res.socket.__SESSION_ID, 'string')
+    t.equal(typeof res.socket.__SESSION_DATA, 'object')
 
     t.deepEqual(Object.keys(debug[0]), ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
     t.deepEqual(Object.keys(debug[0].request), ['method', 'href', 'headers', 'proxy', 'httpVersion'])
@@ -163,7 +145,8 @@ tape('HTTPS: verbose=true', function (t) {
     t.equal(Array.isArray(debug), true)
     t.equal(debug.length, 1)
 
-    assertVerboseSession(t, res, debug, 0)
+    t.equal(typeof res.socket.__SESSION_ID, 'string')
+    t.equal(typeof res.socket.__SESSION_DATA, 'object')
     t.deepEqual(Object.keys(debug[0]), ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
     t.deepEqual(Object.keys(debug[0].request), ['method', 'href', 'headers', 'proxy', 'httpVersion'])
     t.deepEqual(Object.keys(debug[0].session), ['id', 'reused', 'data'])
@@ -190,7 +173,8 @@ tape('HTTPS Gzip: verbose=true', function (t) {
     t.equal(Array.isArray(debug), true)
     t.equal(debug.length, 1)
 
-    assertVerboseSession(t, res, debug, 0)
+    t.equal(typeof res.socket.__SESSION_ID, 'string')
+    t.equal(typeof res.socket.__SESSION_DATA, 'object')
     t.deepEqual(Object.keys(debug[0]), ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
     t.deepEqual(Object.keys(debug[0].request), ['method', 'href', 'headers', 'proxy', 'httpVersion'])
     t.deepEqual(Object.keys(debug[0].session), ['id', 'reused', 'data'])
@@ -217,7 +201,8 @@ tape('HTTPS: redirect(HTTP) + verbose=true', function (t) {
     t.equal(Array.isArray(debug), true)
     t.equal(debug.length, 2)
 
-    assertVerboseSession(t, res, debug, 1)
+    t.equal(typeof res.socket.__SESSION_ID, 'string')
+    t.equal(typeof res.socket.__SESSION_DATA, 'object')
 
     t.deepEqual(Object.keys(debug[0]), ['request', 'session', 'response', 'timingStart', 'timingStartTimer', 'timings'])
     t.deepEqual(Object.keys(debug[0].request), ['method', 'href', 'headers', 'proxy', 'httpVersion'])

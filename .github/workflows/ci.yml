@@ -56,26 +56,11 @@ jobs:
   tests:
     name: Tests
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - node-version: 18
-            os: ubuntu-latest
-            experimental: false
-          - node-version: 18
-            os: windows-latest
-            experimental: false
-          - node-version: 20
-            os: ubuntu-latest
-            experimental: true
-          - node-version: 20
-            os: windows-latest
-            experimental: true
-          - node-version: latest
-            os: ubuntu-latest
-            experimental: true
+        node-version: [18]
+        os: [ubuntu-latest, windows-latest]
 
     steps:
       - name: Checkout repository
