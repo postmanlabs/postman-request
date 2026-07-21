@@ -6,9 +6,16 @@ var fs = require('fs')
 
 var testsDir = __dirname
 var taper = path.join(__dirname, '..', 'node_modules', 'taper', 'bin', 'taper.js')
+var skipOnWindows = {
+  'test-unix-http2.js': true,
+  'test-unix.js': true
+}
 var testFiles = fs.readdirSync(testsDir)
   .filter(function (file) {
     return /^test-.*\.js$/.test(file)
+  })
+  .filter(function (file) {
+    return process.platform !== 'win32' || !skipOnWindows[file]
   })
   .sort()
   .map(function (file) {
