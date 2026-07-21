@@ -10,6 +10,10 @@ on:
   schedule:
     - cron: '0 12 * * 0'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     name: Lint
@@ -19,13 +23,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Use Node.js 10.x
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 10.x
+          node-version: 18.x
+          cache: 'npm'
 
-      - name: Install
-        run: npm install
+      - name: Install with legacy peer deps
+        run: npm ci --legacy-peer-deps
 
       - name: Run lint tests
         run: npm run lint
@@ -38,24 +43,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
+          cache: 'npm'
 
       - name: Install with legacy peer deps
-        run: npm install --legacy-peer-deps
+        run: npm ci --legacy-peer-deps
 
       - name: Run browser tests
         run: npm run test-browser
 
   tests:
     name: Tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        node-version: [16, 18]
+        node-version: [18, 20]
+        os: [ubuntu-latest, windows-latest]
+        include:
+          - node-version: latest
+            os: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -65,9 +75,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'npm'
 
       - name: Install with legacy peer deps
-        run: npm install --legacy-peer-deps
+        run: npm ci --legacy-peer-deps
 
-      - name: Run tests and upload coverage
+      - name: Run tests
         run: npm run test-ci
