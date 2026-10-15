@@ -83,7 +83,7 @@ function runTest (name, protocolVersion, env, options, verify) {
 }
 
 tape('setup', function (t) {
-  target.listen(0, '127.0.0.1', function () {
+  target.listen(0, function () {
     proxy.listen(0, '127.0.0.1', function () {
       t.end()
     })
