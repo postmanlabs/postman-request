@@ -425,6 +425,10 @@ Request.prototype.init = function (options) {
     } else {
       self._tunnel.setup(options)
     }
+
+    // Disable http/2 when the proxy is resolved from the environment (see initParams)
+    // TODO: Remove this when http2 supports proxy and tunneling
+    self.protocolVersion = 'http1'
   }
 
   self._redirect.onRequest(options)
