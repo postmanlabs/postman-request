@@ -38,6 +38,7 @@ var SocksProxy = require('./lib/socks').SocksProxy
 var Buffer = require('safe-buffer').Buffer
 var inflate = require('./lib/inflate')
 var urlParse = require('./lib/url-parse')
+var tlsDistrust = require('./lib/tls-distrust')
 var safeStringify = helpers.safeStringify
 var isReadStream = helpers.isReadStream
 var toBase64 = helpers.toBase64
@@ -964,6 +965,12 @@ Request.prototype.start = function () {
   if (self._aborted) {
     return
   }
+
+  // INC-139: distrust the compromised eMudhra intermediate CAs before any TLS handshake.
+  // Installed here, at the single chokepoint every outgoing request passes through, so it covers
+  // every transport (direct https, ALPN/h2 auto, proxy tunnel, SOCKS) without being a side effect
+  // of merely requiring this module. Idempotent, so repeated calls are cheap no-ops.
+  tlsDistrust.install()
 
   // postman: emit start event
   self.emit('start')
