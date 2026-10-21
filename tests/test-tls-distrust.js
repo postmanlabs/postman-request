@@ -1,9 +1,5 @@
 'use strict'
 
-// INC-139: unit tests for the eMudhra CA distrust filter. These are offline -- they build the
-// detailed peer-certificate shape that `socket.getPeerCertificate(true)` produces from embedded
-// PEMs, so no network or test server is involved.
-
 var crypto = require('crypto')
 var tls = require('tls')
 var tape = require('tape')
@@ -16,7 +12,7 @@ var REVOKED_CA_SPKI_SHA256 = tlsDistrust.REVOKED_CA_SPKI_SHA256
 var ERROR_CODE = tlsDistrust.ERROR_CODE
 
 // [{ name, issuer, pem }], each compromised CA once per issuer (emSign + the AAA cross-sign)
-var revokedCerts = require('./fixtures/inc-139-emudhra-cas.json')
+var revokedCerts = require('./fixtures/emudhra-cas.json')
 
 var HOSTNAME = 'example.test'
 
@@ -95,6 +91,48 @@ tape('tls-distrust: revocation runs before the caller check (caller cannot re-tr
   t.end()
 })
 
+tape('tls-distrust: a failing denylist check rejects the connection instead of throwing', function (t) {
+  var callerCalled = false
+  var callerCheck = function () { callerCalled = true }
+  var cert = { raw: new crypto.X509Certificate(cleanPem).raw }
+  var patched = withDenylistCheck([{ checkServerIdentity: callerCheck }], tls, REVOKED_CA_SPKI_SHA256)
+  var error
+
+  // a throw inside checkServerIdentity is uncaught in the handshake callback
+  Object.defineProperty(cert, 'issuerCertificate', {
+    get: function () { throw new Error('broken chain') }
+  })
+
+  t.doesNotThrow(function () { error = patched[0].checkServerIdentity(HOSTNAME, cert) })
+  t.ok(error instanceof Error, 'returns an Error')
+  t.equal(error.code, ERROR_CODE)
+  t.ok(error.message.indexOf('broken chain') !== -1, 'message carries the cause')
+  t.notOk(callerCalled, 'caller check does not run')
+  t.end()
+})
+
+tape('tls-distrust: a failing argument rewrite falls back to the original tls.connect arguments', function (t) {
+  var original = tls.connect
+  var received
+  var options = { host: 'host.test' }
+
+  // a throwing getter breaks the rewrite, which reads `checkServerIdentity` from the options
+  Object.defineProperty(options, 'checkServerIdentity', {
+    enumerable: true,
+    get: function () { throw new Error('broken options') }
+  })
+
+  tls.connect = function () { received = Array.prototype.slice.call(arguments) }
+  install()
+
+  t.doesNotThrow(function () { tls.connect(options, 'cb') })
+  t.equal(received[0], options, 'original options reach tls.connect unchanged')
+  t.equal(received[1], 'cb', 'remaining arguments are kept')
+
+  tls.connect = original
+  t.end()
+})
+
 tape('tls-distrust: withDenylistCheck adds an options object for (port, host) and (port, cb) forms', function (t) {
   var noOptions = withDenylistCheck([443, 'host.test'], tls, REVOKED_CA_SPKI_SHA256)
   t.equal(noOptions.length, 3, 'appends an options object')
@@ -109,7 +147,7 @@ tape('tls-distrust: withDenylistCheck adds an options object for (port, host) an
 
 tape('tls-distrust: install wraps tls.connect and is idempotent', function (t) {
   var original = tls.connect
-  var INSTALLED = Symbol.for('postman.tlsDenylist.installed')
+  var INSTALLED = Symbol.for('postmanRequest.tlsDenylist.installed')
 
   install()
   var wrapped = tls.connect

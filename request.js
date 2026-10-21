@@ -966,7 +966,7 @@ Request.prototype.start = function () {
     return
   }
 
-  // INC-139: distrust the compromised eMudhra intermediate CAs before any TLS handshake.
+  // Distrust the compromised eMudhra intermediate CAs before any TLS handshake.
   // Installed here, at the single chokepoint every outgoing request passes through, so it covers
   // every transport (direct https, ALPN/h2 auto, proxy tunnel, SOCKS) without being a side effect
   // of merely requiring this module. Idempotent, so repeated calls are cheap no-ops.
