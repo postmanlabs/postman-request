@@ -23,7 +23,9 @@ function redirectResponse (location) {
         return location
       }
     },
-    resume: function () {}
+    resume: function () {},
+    on: function () {},
+    removeAllListeners: function () {}
   }
 }
 
