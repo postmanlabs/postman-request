@@ -4,6 +4,7 @@ var http = require('http')
 var stream = require('stream')
 var request = require('../index')
 var tape = require('tape')
+var destroyable = require('server-destroy')
 
 var hopSockets = {}
 
@@ -39,6 +40,8 @@ var server = http.createServer(function (req, res) {
   res.writeHead(200)
   res.end('ok')
 })
+
+destroyable(server)
 
 var port
 
@@ -158,8 +161,7 @@ tape('redirect keeps a completed hop socket reusable', function (t) {
 })
 
 tape('cleanup', function (t) {
-  server.closeAllConnections()
-  server.close(function () {
+  server.destroy(function () {
     t.end()
   })
 })

@@ -7,6 +7,7 @@ var stream = require('stream')
 var crypto = require('crypto')
 var request = require('../index')
 var tape = require('tape')
+var destroyable = require('server-destroy')
 
 var fixtureBody = fs.readFileSync(path.join(__dirname, 'unicycle.jpg'))
 
@@ -35,6 +36,8 @@ var server = http.createServer(function (req, res) {
     }))
   }
 })
+
+destroyable(server)
 
 var port
 
@@ -115,8 +118,7 @@ tape('307: a stream body swapped in the redirect listener is sent in full', func
 })
 
 tape('cleanup', function (t) {
-  server.closeAllConnections()
-  server.close(function () {
+  server.destroy(function () {
     t.end()
   })
 })
