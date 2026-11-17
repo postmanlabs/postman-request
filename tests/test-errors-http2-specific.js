@@ -1,5 +1,6 @@
 'use strict'
 
+var http2 = require('http2')
 var request = require('../index')
 var tape = require('tape')
 var server = require('./server')
@@ -65,6 +66,34 @@ const errorCodes = [
 for (let i = 0; i < errorCodes.length; i++) {
   addTest(i)
 }
+
+tape('stream reset after the response starts does not throw', function (t) {
+  s.on('/reset-after-response', function (req, res) {
+    res.writeHead(500, { 'content-type': 'application/json' })
+    res.write('{"status":500}')
+    setTimeout(function () {
+      res.stream.close(http2.constants.NGHTTP2_INTERNAL_ERROR)
+    }, 10)
+  })
+
+  var uncaught = []
+  function onUncaught (err) {
+    uncaught.push(err.message)
+  }
+  process.on('uncaughtException', onUncaught)
+
+  request(
+    { uri: s.url + '/reset-after-response', strictSSL: false, protocolVersion: 'http2' },
+    function (err) {
+      t.equal(err.message, 'Stream closed with error code NGHTTP2_INTERNAL_ERROR')
+      setTimeout(function () {
+        process.removeListener('uncaughtException', onUncaught)
+        t.deepEqual(uncaught, [])
+        t.end()
+      }, 50)
+    }
+  )
+})
 
 tape('cleanup', function (t) {
   s.destroy(function () {
